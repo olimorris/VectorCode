@@ -1,0 +1,27 @@
+[project]
+name = "VectorCode"
+version = "0.0.1"
+description = "A tool to vectorise repositories for RAG."
+authors = [{ name = "Davidyz", email = "hzjlyz@gmail.com" }]
+dependencies = [
+    "chromadb>=0.6.2",
+    "argcomplete>=3.5.3",
+    "sentence-transformers>=3.3.1",
+]
+requires-python = ">=3.11"
+readme = "README.md"
+license = { text = "MIT" }
+
+[project.scripts]
+vectorcode = 'vectorcode.main:main'
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm]
+distribution = true
+
+[dependency-groups]
+dev = ["ipython>=8.31.0", "ruff>=0.9.1", "viztracer>=1.0.0"]
