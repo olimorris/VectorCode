@@ -38,7 +38,8 @@ def get_embedding_function(configs: Config) -> Optional[chromadb.EmbeddingFuncti
         )
     except AttributeError:
         print(
-            f"Failed to use {configs.embedding_function}. Falling back to Sentence Transformer."
+            f"Failed to use {configs.embedding_function}. Falling back to Sentence Transformer.",
+            file=sys.stderr,
         )
         return embedding_functions.DefaultEmbeddingFunction()
 
