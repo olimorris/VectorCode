@@ -1,9 +1,10 @@
 local M = {}
 
 ---@class VectorCodeConfig
----@field n_query integer
----@field notify boolean
-local config = { n_query = 1, notify = true }
+---@field n_query integer?
+---@field notify boolean?
+---@field timeout_ms number?
+local config = { n_query = 1, notify = true, timeout_ms = 5000 }
 
 local notify_opts = { title = "VectorCode" }
 
@@ -47,20 +48,20 @@ M.query = function(query_message, opts)
         raw_response = nil
       end,
     })
-    :sync()
+    :sync(opts.timeout_ms)
 
   local decoded_response = {}
   if raw_response ~= nil then
     decoded_response = vim.json.decode(raw_response, { object = true, array = true })
+    if opts.notify then
+      vim.notify(
+        ("Retrieved %s documents."):format(tostring(#decoded_response)),
+        vim.log.levels.INFO,
+        notify_opts
+      )
+    end
   end
 
-  if opts.notify then
-    vim.notify(
-      ("Retrieved %s documents."):format(tostring(#decoded_response)),
-      vim.log.levels.INFO,
-      notify_opts
-    )
-  end
   return decoded_response
 end
 
