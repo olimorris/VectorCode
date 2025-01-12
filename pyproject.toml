@@ -1,6 +1,6 @@
 [project]
 name = "VectorCode"
-version = "0.0.1"
+dynamic = ["version"]
 description = "A tool to vectorise repositories for RAG."
 authors = [{ name = "Davidyz", email = "hzjlyz@gmail.com" }]
 dependencies = [
@@ -19,9 +19,12 @@ vectorcode = 'vectorcode.main:main'
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
-
 [tool.pdm]
 distribution = true
+
+[tool.pdm.version]
+source = "file"
+path = "./src/vectorcode/__init__.py"
 
 [dependency-groups]
 dev = ["ipython>=8.31.0", "ruff>=0.9.1", "viztracer>=1.0.0"]
