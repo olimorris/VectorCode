@@ -5,7 +5,7 @@ from vectorcode.cli_utils import Config
 from vectorcode.common import get_client
 
 
-def ls(configs: Config):
+def ls(configs: Config) -> int:
     client = get_client(configs)
     result: list[dict] = []
     for collection_name in client.list_collections():
@@ -34,3 +34,4 @@ def ls(configs: Config):
     else:
         for meta in result:
             print(f"Collection with project root: {meta['project-root']}")
+    return 0

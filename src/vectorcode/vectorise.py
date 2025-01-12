@@ -5,7 +5,7 @@ from vectorcode.common import get_client, make_or_get_collection
 import tqdm
 
 
-def vectorise(configs: Config):
+def vectorise(configs: Config) -> int:
     client = get_client(configs)
     collection = make_or_get_collection(client, configs)
     files = expand_globs(configs.files or [], recursive=configs.recursive)
@@ -38,3 +38,4 @@ def vectorise(configs: Config):
         print(f"Updated:\t{stats['update']}")
         if orphaned:
             print(f"Removed orphanes:\t{len(orphaned)}")
+    return 0

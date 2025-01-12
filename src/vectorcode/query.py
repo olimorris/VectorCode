@@ -10,7 +10,7 @@ from chromadb.errors import InvalidCollectionException
 from vectorcode.common import get_collection_name
 
 
-def query(configs: Config):
+def query(configs: Config) -> int:
     client = get_client(configs)
     try:
         collection = client.get_collection(
@@ -24,7 +24,7 @@ def query(configs: Config):
             print(
                 "Embeddings and query must use the same embedding function and parameters. Please double-check your config."
             )
-            sys.exit(1)
+            return 1
         elif collection_ep and collection_ep != configs.embedding_params:
             print(
                 f"The collection was embedded with a different set of configurations: {collection_ep}.",
@@ -33,7 +33,7 @@ def query(configs: Config):
             print("The result may be inaccurate.", file=sys.stderr)
     except (ValueError, InvalidCollectionException):
         print(f"There's no existing collection for {configs.project_root}")
-        sys.exit(1)
+        return 1
 
     if not configs.pipe:
         print("Starting querying...")
@@ -44,9 +44,9 @@ def query(configs: Config):
         )
     except IndexError:
         # no results found
-        return
+        return 0
     if results["documents"] is None or len(results["documents"]) == 0:
-        return
+        return 0
 
     structured_result = []
 
@@ -63,3 +63,4 @@ def query(configs: Config):
             print(f"Content: \n{result['document']}")
             if idx != len(structured_result) - 1:
                 print()
+    return 0

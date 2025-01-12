@@ -10,12 +10,14 @@ def main():
     config_file_configs = load_config_file()
     final_configs = config_file_configs.merge_from(cli_args)
 
+    return_val = 0
     match final_configs.action:
         case CliAction.query:
-            query(final_configs)
+            return_val = query(final_configs)
         case CliAction.vectorise:
-            vectorise(final_configs)
+            return_val = vectorise(final_configs)
         case CliAction.drop:
-            drop(final_configs)
+            return_val = drop(final_configs)
         case CliAction.ls:
-            ls(final_configs)
+            return_val = ls(final_configs)
+    return return_val
