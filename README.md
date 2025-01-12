@@ -7,7 +7,7 @@ neovim plugin because that's what I used to write this tool.
 
 > [!NOTE]
 > This project is in beta quality and only implements very basic retrieval and
-> embedding functionalities. There's plenty of rooms for improvements and any
+> embedding functionalities. There are plenty of rooms for improvements and any
 > help is welcomed.
 
 > [!NOTE]
@@ -52,8 +52,8 @@ you can find out more from
 ## Installation
 
 
-I recommend using [pipx](https://github.com/pypa/pipx). This will take care of
-the depenencies of `vectorcode` and create a dedicated virtual environment
+I recommend using [`pipx`](https://github.com/pypa/pipx). This will take care of
+the dependencies of `vectorcode` and create a dedicated virtual environment
 without messing up your system Python.
 
 Run the following command:
@@ -71,14 +71,17 @@ For `lazy.nvim`:
 {
   "Davidyz/VectorCode",
   dependencies = { "nvim-lua/plenary.nvim" },
-  opts = { n_query = 1 },
+  opts = { 
+    n_query = 1, -- number of retrieved documents
+    notify = true, -- enable notifications
+  },
 }
 ```
 
 ## Configuration
 
 ### CLI tool
-This tool uses a json file to store the configuration. It's located at
+This tool uses a JSON file to store the configuration. It's located at
 `$HOME/.config/vectorcode/config.json`.
 
 ```json 
@@ -110,7 +113,7 @@ This tool uses a json file to store the configuration. It's located at
 
 For the convenience of deployment, environment variables in the
 configuration values will be automatically expanded so that you can override
-thing at run time without modifying the json.
+thing at run time without modifying the JSON.
 
 Also, some of the built-in embedding functions supported by Chromadb requires
 external library (such as `openai`) that are not included in the dependency
@@ -169,16 +172,16 @@ output into a structured format. This is explained in detail [here](#for-develop
 
 This is **NOT** a completion plugin, but a helper that facilitates prompting. It
 provides APIs so that your completion engine (such as 
-[cmp-ai](https://github.com/tzachar/cmp-ai)) can leverage the repository-level
+[`cmp-ai`](https://github.com/tzachar/cmp-ai)) can leverage the repository-level
 context.
 
-Using [cmp-ai](https://github.com/tzachar/cmp-ai) as an example, the
+Using [`cmp-ai`](https://github.com/tzachar/cmp-ai) as an example, the
 [configuration](https://github.com/tzachar/cmp-ai?tab=readme-ov-file#setup)
 provides a `prompt` option, with which you can customize the prompt sent to the
 LLM for each of the completion.
 
-By consulting the [qwen2.5-coder documentation](https://github.com/QwenLM/Qwen2.5-Coder?tab=readme-ov-file#3-file-level-code-completion-fill-in-the-middle)
-, we know that a trivial prompt can be constructed as the
+By consulting the [qwen2.5-coder documentation](https://github.com/QwenLM/Qwen2.5-Coder?tab=readme-ov-file#3-file-level-code-completion-fill-in-the-middle), 
+we know that a trivial prompt can be constructed as the
 following:
 ```lua 
 prompt = function(lines_before, lines_after)
@@ -196,17 +199,23 @@ that contain repository-level information:
 ```lua
 prompt = function(lines_before, lines_after)
     local file_context = ""
-    for _, source in
-        -- Use the current document as the query
-        -- You can adjust this to match your needs.
-        pairs(require("vectorcode").query(lines_before .. " " .. lines_after))
-    do
-        file_context = file_context
-            .. "<|file_sep|>"  
-            .. source.path
-            .. "\n"
-            .. source.document
-            .. "\n"
+    local ok, retrieval = pcall(
+        -- safeguard the query call if your embedding function is over the
+        -- network and may timeout on large documents.
+        require("vectorcode").query,
+            lines_before .. " " .. lines_after,
+            { n_query = n_query } 
+        )
+    if ok then
+        for _, source in pairs(retrieval) do
+            -- This works for qwen2.5-coder.
+            file_context = file_context
+                .. "<|file_sep|>"
+                .. source.path
+                .. "\n"
+                .. source.document
+                .. "\n"
+        end
     end
     return file_context
         ..'<|fim_prefix|>' 
@@ -226,6 +235,10 @@ which overrides the `setup` setting for this call:
 ```lua 
 require("vectorcode").query(some_query_message, {n_query=5})
 ```
+The second parameter follows the same structure as the `opts` table for the
+`setup` function. Settings in this table will override the options in `setup`
+for this `query` call. This allows adjusting the number of retrieved documents
+on the fly.
 
 > [!NOTE]
 > The retrieval process will inevitably slow down the completion.
@@ -286,9 +299,9 @@ A JSON array of collection information of the following format will be printed:
 The `drop` command doesn't offer a `--pipe` model output at the moment.
 
 ## TODOs
-- [ ] NeoVim lua API with cache to skip the retrieval when a project has not
+- [ ] NeoVim Lua API with cache to skip the retrieval when a project has not
   been indexed;
-- [ ] query by filepath;
+- [ ] query by file path;
 - [ ] respect `.gitignore`;
 - [ ] implement some sort of project-root anchors (such as `.git` or a custom
   `.vectorcode.json`) that enhances automatic project-root detection.

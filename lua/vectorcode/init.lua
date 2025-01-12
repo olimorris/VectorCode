@@ -2,7 +2,10 @@ local M = {}
 
 ---@class VectorCodeConfig
 ---@field n_query integer
-local config = { n_query = 1 }
+---@field notify boolean
+local config = { n_query = 1, notify = true }
+
+local notify_opts = { title = "VectorCode" }
 
 ---@class VectorCodeResult
 ---@field path string
@@ -14,11 +17,21 @@ local config = { n_query = 1 }
 M.query = function(query_message, opts)
   opts = vim.tbl_deep_extend("force", config, opts or {})
   if opts.n_query == 0 then
+    if opts.notify then
+      vim.notify("n_query is 0. Not sending queries.")
+    end
     return {}
   end
   ---@type string?
   local raw_response = ""
 
+  if opts.notify then
+    vim.notify(
+      ("Started retrieving %s documents."):format(tostring(opts.n_query)),
+      vim.log.levels.INFO,
+      notify_opts
+    )
+  end
   require("plenary.job")
     :new({
       command = "vectorcode",
@@ -36,11 +49,19 @@ M.query = function(query_message, opts)
     })
     :sync()
 
-  if raw_response == nil then
-    return {}
+  local decoded_response = {}
+  if raw_response ~= nil then
+    decoded_response = vim.json.decode(raw_response, { object = true, array = true })
   end
 
-  return vim.json.decode(raw_response, { object = true, array = true })
+  if opts.notify then
+    vim.notify(
+      ("Retrieved %s documents."):format(tostring(#decoded_response)),
+      vim.log.levels.INFO,
+      notify_opts
+    )
+  end
+  return decoded_response
 end
 
 ---@param files string|string[]
