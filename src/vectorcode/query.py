@@ -1,13 +1,14 @@
 import json
-import sys
 
-from pydantic import config
-from vectorcode.common import get_client, get_embedding_function
+from chromadb.errors import InvalidCollectionException, InvalidDimensionException
+
 from vectorcode.cli_utils import Config
-
-
-from chromadb.errors import InvalidCollectionException
-from vectorcode.common import get_collection_name
+from vectorcode.common import (
+    get_client,
+    get_collection_name,
+    get_embedding_function,
+    verify_ef,
+)
 
 
 def query(configs: Config) -> int:
@@ -17,22 +18,13 @@ def query(configs: Config) -> int:
             name=get_collection_name(str(configs.project_root)),
             embedding_function=get_embedding_function(configs),
         )
-        collection_ef = collection.metadata.get("embedding_function")
-        collection_ep = collection.metadata.get("embedding_params")
-        if collection_ef and collection_ef != configs.embedding_function:
-            print(f"The collection was embedded using {collection_ef}.")
-            print(
-                "Embeddings and query must use the same embedding function and parameters. Please double-check your config."
-            )
+        if not verify_ef(collection, configs):
             return 1
-        elif collection_ep and collection_ep != configs.embedding_params:
-            print(
-                f"The collection was embedded with a different set of configurations: {collection_ep}.",
-                file=sys.stderr,
-            )
-            print("The result may be inaccurate.", file=sys.stderr)
     except (ValueError, InvalidCollectionException):
         print(f"There's no existing collection for {configs.project_root}")
+        return 1
+    except InvalidDimensionException:
+        print("The collection was embedded with a different embedding model.")
         return 1
 
     if not configs.pipe:

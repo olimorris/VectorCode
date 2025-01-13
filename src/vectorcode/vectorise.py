@@ -1,13 +1,15 @@
 import json
 import os
-from vectorcode.cli_utils import Config, expand_globs
-from vectorcode.common import get_client, make_or_get_collection
+from vectorcode.cli_utils import Config, expand_globs, expand_path
+from vectorcode.common import get_client, make_or_get_collection, verify_ef
 import tqdm
 
 
 def vectorise(configs: Config) -> int:
     client = get_client(configs)
     collection = make_or_get_collection(client, configs)
+    if not verify_ef(collection, configs):
+        return 1
     files = expand_globs(configs.files or [], recursive=configs.recursive)
 
     stats = {
@@ -19,7 +21,7 @@ def vectorise(configs: Config) -> int:
             content = "".join(fin.readlines())
 
         if content:
-            path_str = str(file)
+            path_str = str(expand_path(str(file), True))
             if len(collection.get(ids=[path_str])["ids"]):
                 collection.update(ids=[path_str], documents=[content])
                 stats["update"] += 1

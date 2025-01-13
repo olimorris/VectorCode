@@ -1,11 +1,13 @@
 import argparse
-from dataclasses import dataclass, fields, field
-from enum import Enum
 import glob
+import json
 import os
+import sys
+from dataclasses import dataclass, field, fields
+from enum import Enum
+from os.path import isfile
 from pathlib import Path
 from typing import Any, Optional, Union
-import json
 
 PathLike = Union[str, Path]
 
@@ -56,6 +58,7 @@ class Config:
         )
 
     def merge_from(self, other: "Config") -> "Config":
+        """Return the merged config."""
         final_config = {}
         default_config = Config()
         for merged_field in fields(self):
@@ -151,17 +154,32 @@ def expand_envs_in_dict(d: dict):
                 stack.append(curr[k])
 
 
-def load_config_file():
+def load_config_file(path: Optional[PathLike] = None):
     """Load config file from ~/.config/vectorcode/config.json"""
-    config_path = os.path.join(
-        os.path.expanduser("~"), ".config", "vectorcode", "config.json"
-    )
-    if os.path.isfile(config_path):
-        with open(config_path) as fin:
+    if path is None:
+        path = os.path.join(
+            os.path.expanduser("~"), ".config", "vectorcode", "config.json"
+        )
+    if os.path.isfile(path):
+        with open(path) as fin:
             config = json.load(fin)
         expand_envs_in_dict(config)
         return Config.import_from(config)
+    print(f"{path} does not exist or is not a valid file.", file=sys.stderr)
     return Config()
+
+
+def find_project_config_dir():
+    """Returns the project-local config directory."""
+    current_dir = Path(".").resolve()
+    while current_dir:
+        to_be_checked = os.path.join(current_dir, ".vectorcode/")
+        if os.path.isdir(to_be_checked):
+            return to_be_checked
+        parent = current_dir.parent
+        if parent.resolve() == current_dir:
+            return
+        current_dir = parent.resolve()
 
 
 def expand_path(path: PathLike, absolute: bool = False) -> PathLike:

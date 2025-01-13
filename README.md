@@ -84,8 +84,13 @@ For `lazy.nvim`:
 ## Configuration
 
 ### CLI tool
-This tool uses a JSON file to store the configuration. It's located at
-`$HOME/.config/vectorcode/config.json`.
+This tool uses a JSON file to store the configuration. The global config is located at
+`$HOME/.config/vectorcode/config.json`. You can also set a project-specific
+configuration at `<project_root>/.vectorcode/config.json`. Options in the
+project configuration will override the global config. The closest parent directory 
+of the current working directory that contains a project-specific config will be
+used as the project-root, but this can be overridden by the `--project_root`
+flag.
 
 ```json 
 {
@@ -365,5 +370,6 @@ The `drop` command doesn't offer a `--pipe` model output at the moment.
   been indexed;
 - [ ] query by file path;
 - [ ] respect `.gitignore`;
-- [ ] implement some sort of project-root anchors (such as `.git` or a custom
+- [x] implement some sort of project-root anchors (such as `.git` or a custom
   `.vectorcode.json`) that enhances automatic project-root detection.
+  **Implemented project-level `.vectorcode/config.json` as root anchor**

@@ -66,3 +66,21 @@ def make_or_get_collection(client: ClientAPI, configs: Config):
             "Failed to create the collection due to hash collision. Please file a bug report."
         )
     return collection
+
+
+def verify_ef(collection, configs: Config):
+    collection_ef = collection.metadata.get("embedding_function")
+    collection_ep = collection.metadata.get("embedding_params")
+    if collection_ef and collection_ef != configs.embedding_function:
+        print(f"The collection was embedded using {collection_ef}.")
+        print(
+            "Embeddings and query must use the same embedding function and parameters. Please double-check your config."
+        )
+        return False
+    elif collection_ep and collection_ep != configs.embedding_params:
+        print(
+            f"The collection was embedded with a different set of configurations: {collection_ep}.",
+            file=sys.stderr,
+        )
+        print("The result may be inaccurate.", file=sys.stderr)
+    return True
