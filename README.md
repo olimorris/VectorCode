@@ -30,6 +30,8 @@ neovim plugin because that's what I used to write this tool.
     * [Listing all collections ](#listing-all-collections-)
     * [Removing a collection ](#removing-a-collection-)
   * [NeoVim plugin](#neovim-plugin)
+    * [Asynchronous Caching](#asynchronous-caching)
+    * [The Boring Stuff](#the-boring-stuff)
   * [For Developers](#for-developers)
     * [`vectorise`](#vectorise)
     * [`query`](#query)
@@ -242,8 +244,67 @@ for this `query` call. This allows adjusting the number of retrieved documents
 on the fly.
 
 > [!NOTE]
-> The retrieval process will inevitably slow down the completion.
+> This API is synchronous and will block your main nvim UI.
 
+#### Asynchronous Caching
+
+For applications that are sensitive to timing, the above process may not be
+responsive enough. As you can see from using the CLI, the query itself takes
+some noticeable amount of time. This is why I wrote a per-buffer async caching
+mechanism that will overcome the issue to some extent.
+
+To use the per-buffer async cache, you need to use the following API:
+- `require("vectorcode.cacher").register_buffer(buf_nr?, opts?, query_cb?,
+  events?)`: Register a buffer for background query. 
+  - `buf_nr` (optional): integer, the buffer number to setup async runner in;
+  - `opts` (optional): table, the same structure as what you use for `setup` 
+    and the synchronous `query`. This opts will be used for all the async 
+    updates managed by this plugin. This defaults to the option configured in 
+    `setup`;
+  - `query_cb` (optional): `fun(bufnr: integer):string`, a function that will
+    be used to construct the query message. You can use this function to
+    customise the message sent to the `vectorcode` CLI. This defaults to the
+    whole buffer (for now);
+  - `events` (optional): `string[]`, an array of `autocmd` events on which 
+    the queries will be initialised. This defaults to `{ "BufWritePost", "InsertEnter", "BufReadPost" }`.
+
+  Calling this function on a buffer that has been registered will update its
+  `opts` and `query_cb`.
+
+- `require("vectorcode.cacher).query_from_cache(bufnr?)`: Returns the retrieval
+  results from the most recent async cache for the given buffer. If the buffer
+  has not been registered, it will return an empty array. The returned data is
+  in the same format as the synchronous `query` API.
+  - `bufnr` (optional): integer, the buffer number to retrieve cache from.
+    Defaults to 0 (the current buffer).
+
+With these async caching mechanism, you'll be able to utilise the retrieval with
+minimum latency and without blocking the main UI. All you need to do is to setup
+some kind of autocmd that register buffers, for example:
+```lua
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function()
+    local bufnr = vim.api.nvim_get_current_buf()
+    require("vectorcode.cacher").register_buffer(bufnr)
+  end,
+})
+```
+And in your completion prompt construction, you can use
+`require("vectorcode.cacher").query_from_cache(bufnr)` to get the cached
+retrieval results that you use to build your prompt.
+
+#### The Boring Stuff
+Under the hood, the caching mechanism stores the information in
+`vim.b[bufnr].vectorcode_cache`. The variable is a table with the following
+definition:
+```lua
+{
+  enabled = true, -- controls whether the async jobs will be run. 
+  retrieval = {}, -- the cached retrieval result.
+  options = {}, -- options passed from the `opts` argument when registering the
+                -- buffer.
+}
+```
 ### For Developers
 
 When the `--pipe` flag is set, the output of the CLI tool will be structured

@@ -2,7 +2,7 @@ local M = {}
 
 local get_config = require("vectorcode.config").get_user_config
 
-local notify_opts = { title = "VectorCode" }
+local notify_opts = require("vectorcode.config").notify_opts
 
 ---@class VectorCodeResult
 ---@field path string

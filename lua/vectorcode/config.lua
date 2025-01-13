@@ -18,4 +18,5 @@ return {
   get_user_config = function()
     return vim.deepcopy(setup_config, true)
   end,
+  notify_opts = { title = "VectorCode" },
 }
