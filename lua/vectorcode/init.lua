@@ -1,10 +1,6 @@
 local M = {}
 
----@class VectorCodeConfig
----@field n_query integer?
----@field notify boolean?
----@field timeout_ms number?
-local config = { n_query = 1, notify = true, timeout_ms = 5000 }
+local get_config = require("vectorcode.config").get_user_config
 
 local notify_opts = { title = "VectorCode" }
 
@@ -16,7 +12,7 @@ local notify_opts = { title = "VectorCode" }
 ---@param opts VectorCodeConfig?
 ---@return VectorCodeResult[]
 M.query = function(query_message, opts)
-  opts = vim.tbl_deep_extend("force", config, opts or {})
+  opts = vim.tbl_deep_extend("force", get_config(), opts or {})
   if opts.n_query == 0 then
     if opts.notify then
       vim.notify("n_query is 0. Not sending queries.")
@@ -33,22 +29,21 @@ M.query = function(query_message, opts)
       notify_opts
     )
   end
-  require("plenary.job")
-    :new({
-      command = "vectorcode",
-      args = { "query", "--pipe", "-n", tostring(opts.n_query), query_message },
-      on_exit = function(self, code, signal)
-        if code ~= 0 then
-          raw_response = nil
-        else
-          raw_response = table.concat(self:result(), "")
-        end
-      end,
-      and_then_on_failure = function()
+  local job = require("plenary.job"):new({
+    command = "vectorcode",
+    args = { "query", "--pipe", "-n", tostring(opts.n_query), query_message },
+    on_exit = function(self, code, signal)
+      if code ~= 0 then
         raw_response = nil
-      end,
-    })
-    :sync(opts.timeout_ms)
+      else
+        raw_response = table.concat(self:result(), "")
+      end
+    end,
+    and_then_on_failure = function()
+      raw_response = nil
+    end,
+  })
+  job:sync(opts.timeout_ms)
 
   local decoded_response = {}
   if raw_response ~= nil then
@@ -105,16 +100,5 @@ M.vectorise = function(files, project_root)
     :start()
 end
 
----@param opts VectorCodeConfig
-M.setup = function(opts)
-  if vim.fn.executable("vectorcode") ~= 1 then
-    vim.notify(
-      "vectorcode executable is not installed.",
-      vim.log.levels.ERROR,
-      { title = "VectorCode" }
-    )
-  end
-
-  config = vim.tbl_deep_extend("force", config, opts or {})
-end
+M.setup = require("vectorcode.config").setup
 return M
