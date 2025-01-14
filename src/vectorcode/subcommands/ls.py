@@ -1,6 +1,7 @@
 import json
 import os
 import socket
+import tabulate
 from vectorcode.cli_utils import Config
 from vectorcode.common import get_client
 
@@ -26,12 +27,25 @@ def ls(configs: Config) -> int:
                 "hostname": socket.gethostname(),
                 "collection_name": collection_name,
                 "size": collection.count(),
+                "embedding_function": meta["embedding_function"],
             }
         )
 
     if configs.pipe:
         print(json.dumps(result))
     else:
+        table = []
         for meta in result:
-            print(f"Collection with project root: {meta['project-root']}")
+            row = [
+                meta["project-root"].replace(os.environ["HOME"], "~"),
+                meta["size"],
+                meta["embedding_function"],
+            ]
+            table.append(row)
+        print(
+            tabulate.tabulate(
+                table,
+                headers=["Project Root", "Collection Size", "Embedding Function"],
+            )
+        )
     return 0
