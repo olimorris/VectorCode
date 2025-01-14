@@ -13,8 +13,12 @@ from vectorcode.cli_utils import Config, expand_path
 
 def get_client(configs: Config) -> ClientAPI:
     try:
-        client = chromadb.HttpClient(host=configs.host, port=configs.port)
-        return client
+        if configs.db_path is not None:
+            os.makedirs(configs.db_path, exist_ok=True)
+            return chromadb.PersistentClient(configs.db_path)
+        return chromadb.HttpClient(
+            host=configs.host or "localhost", port=configs.port or 8000
+        )
     except ValueError:
         print(
             f"Failed to access the chromadb server at {configs.host}:{configs.port}. Please verify your setup and configurations."

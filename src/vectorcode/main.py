@@ -12,16 +12,16 @@ from vectorcode.subcommands import drop, init, ls, query, vectorise
 
 def main():
     cli_args = cli_arg_parser()
-    config_file_configs = load_config_file()
     project_config_dir = find_project_config_dir(cli_args.project_root)
 
     if project_config_dir is not None:
         project_config_file = os.path.join(project_config_dir, "config.json")
         if os.path.isfile(project_config_file):
-            config_file_configs = config_file_configs.merge_from(
-                load_config_file(project_config_file)
-            )
-    final_configs = config_file_configs.merge_from(cli_args)
+            final_configs = load_config_file(project_config_file).merge_from(cli_args)
+        else:
+            final_configs = cli_args
+    else:
+        final_configs = load_config_file().merge_from(cli_args)
 
     return_val = 0
     match final_configs.action:

@@ -34,12 +34,13 @@ class Config:
     files: list[PathLike] = field(default_factory=list)
     project_root: PathLike = Path(".")
     query: Optional[str] = None
-    host: str = "localhost"
-    port: int = 8000
+    host: Optional[str] = None
+    port: Optional[int] = None
     embedding_function: str = ""  # This should fallback to whatever the default is.
     embedding_params: dict[str, Any] = field(default_factory=(lambda: {}))
     n_result: int = 3
     force: bool = False
+    db_path: Optional[str] = None
 
     @classmethod
     def import_from(cls, config_dict: dict[str, Any]) -> "Config":
@@ -49,18 +50,29 @@ class Config:
         ep = config_dict.get("embedding_params")
         if not isinstance(ep, dict):
             ep = {}
-        host = config_dict.get("host")
-        if not isinstance(host, str):
-            host = "localhost"
-        port = config_dict.get("port")
-        if not isinstance(port, int):
-            port = 8000
+        db_path = config_dict.get("db_path")
+        if config_dict.get("host") is None and config_dict.get("port") is None:
+            host = None
+            port = None
+            db_path = db_path or os.path.expanduser(
+                "~/.local/share/vectorcode/chromadb/"
+            )
+        else:
+            host = config_dict.get("host") or "localhost"
+            port = config_dict.get("port") or 8000
+            if db_path is not None:
+                print(
+                    f"db_path ({db_path}) and remote database access point ({host}:{port}) are both detected from the same config. Ignoring db_path.",
+                    file=sys.stderr,
+                )
+            db_path = None
         return Config(
             **{
                 "embedding_function": ef,
                 "embedding_params": ep,
                 "host": host,
                 "port": port,
+                "db_path": db_path,
             }
         )
 

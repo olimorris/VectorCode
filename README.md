@@ -45,12 +45,14 @@ neovim plugin because that's what I used to write this tool.
 ## Prerequisites
 
 
-- A working instance of [Chromadb](https://www.trychroma.com/). A local docker
-  image will suffice.
-- An embedding tool supported by [Chromadb](https://www.trychroma.com/), which 
+- <del>A working instance of [Chromadb](https://www.trychroma.com/). A local docker
+  image will suffice.</del>
+- <del>An embedding tool supported by [Chromadb](https://www.trychroma.com/), which 
 you can find out more from 
 [here](https://docs.trychroma.com/docs/embeddings/embedding-functions) and 
-[here](https://docs.trychroma.com/integrations/chroma-integrations)
+[here](https://docs.trychroma.com/integrations/chroma-integrations)</del>
+
+As long as you managed to install `VectorCode` itself, you're good to go!
 
 ## Installation
 
@@ -100,6 +102,7 @@ flag.
     }
     "host": "localhost",  
     "port": 8000,
+    "db_path": "~/.local/share/vectorcode/chromadb/",
 }
 ```
 - `embedding_function`: One of the embedding functions supported by [Chromadb](https://www.trychroma.com/) 
@@ -118,7 +121,9 @@ flag.
   Then the embedding function object will be initialised as
   `OllamaEmbeddingFunction(url="http://127.0.0.1:11434/api/embeddings",
   model_name="nomic-embed-text")`.
-- `host` and `port`: Chromadb server host and port.
+- `host` and `port`: Chromadb server host and port;
+- `db_path`: Path to local persistent database. If `host` or `port` is set, this
+  will be ignored.
 
 For the convenience of deployment, environment variables in the
 configuration values will be automatically expanded so that you can override
@@ -164,7 +169,9 @@ VectorCode when you run `vectorcode` command from any of the subdirectories of
 `foo/`, unless overridden by `--project_root`. 
 
 When you run `vectorcode init` and a global configuration file is present, it'll
-be copied to your project-local config directory.
+be copied to your project-local config directory. **If a project-local
+configuration is found, the global configuration will be ignored to avoid
+confusion.**
 
 #### Vectorising documents
 ```bash
@@ -393,7 +400,7 @@ The `drop` command doesn't offer a `--pipe` model output at the moment.
 - [ ] NeoVim Lua API with cache to skip the retrieval when a project has not
   been indexed;
 - [ ] query by file path;
-- [ ] [persistent-client](https://docs.trychroma.com/docs/run-chroma/persistent-client);
+- [x] [persistent-client](https://docs.trychroma.com/docs/run-chroma/persistent-client);
 - [x] respect `.gitignore`;
 - [x] implement some sort of project-root anchors (such as `.git` or a custom
   `.vectorcode.json`) that enhances automatic project-root detection.
