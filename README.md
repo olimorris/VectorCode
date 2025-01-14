@@ -393,7 +393,8 @@ The `drop` command doesn't offer a `--pipe` model output at the moment.
 - [ ] NeoVim Lua API with cache to skip the retrieval when a project has not
   been indexed;
 - [ ] query by file path;
-- [ ] respect `.gitignore`;
+- [ ] [persistent-client](https://docs.trychroma.com/docs/run-chroma/persistent-client);
+- [x] respect `.gitignore`;
 - [x] implement some sort of project-root anchors (such as `.git` or a custom
   `.vectorcode.json`) that enhances automatic project-root detection.
   **Implemented project-level `.vectorcode/config.json` as root anchor**
