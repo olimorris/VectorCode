@@ -7,10 +7,12 @@ local notify_opts = vc_config.notify_opts
 ---@field retrieval VectorCodeResult[]?
 ---@field options VectorCodeConfig
 ---@field query_cb (fun(buf_number: integer): string)?
+---@field running boolean
 local default_vectorcode_cache = {
   enabled = true,
   retrieval = {},
   options = vc_config.get_user_config(),
+  running = false,
 }
 
 ---@param query_message string
@@ -19,6 +21,11 @@ local function async_runner(query_message, buf_nr)
   if not vim.b[buf_nr].vectorcode_cache.enabled then
     return
   end
+  vim.schedule(function()
+    local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
+    cache.running = true
+    vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
+  end)
   vim.system(
     {
       "vectorcode",
@@ -57,11 +64,16 @@ function M.register_buffer(bufnr, opts, query_cb, events)
   if M.buf_is_registered(bufnr) then
     -- update the options and/or query_cb
     vim.schedule(function()
-      vim.b[bufnr].vectorcode_cache.options =
-        vim.tbl_deep_extend("force", vim.b[bufnr].vectorcode_cache.options, opts or {})
+      local cache = vim.b[bufnr].vectorcode_cache
+      cache.options = vim.tbl_deep_extend("force", cache.options, opts or {})
       if type(query_cb) == "function" then
-        vim.b[bufnr].vectorcode_cache.query_cb = query_cb
+        cache.query_cb = query_cb
       end
+      vim.api.nvim_buf_set_var(
+        bufnr or vim.api.nvim_get_current_buf(),
+        "vectorcode_cache",
+        cache
+      )
     end)
     return
   end
@@ -79,6 +91,7 @@ function M.register_buffer(bufnr, opts, query_cb, events)
       retrieval = nil,
       options = opts,
       query_cb = query_cb,
+      running = false,
     })
     vim.api.nvim_create_autocmd(events, {
       callback = function()
@@ -123,4 +136,28 @@ M.query_from_cache = function(bufnr)
   return result
 end
 
+function M.lualine()
+  return {
+    function()
+      local message = "VectorCode: "
+      ---@type VectorCodeCache
+      local cache = vim.b.vectorcode_cache
+      if cache.enabled then
+        if cache.retrieval ~= nil then
+          message = message .. tostring(#cache.retrieval)
+        elseif cache.running then
+          message = message .. " "
+        else
+          message = message .. " "
+        end
+      else
+        message = message .. " "
+      end
+      return message
+    end,
+    cond = function()
+      return vim.b.vectorcode_cache ~= nil
+    end,
+  }
+end
 return M
