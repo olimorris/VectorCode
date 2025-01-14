@@ -1,16 +1,13 @@
 import os
+
+from vectorcode import __version__
 from vectorcode.cli_utils import (
     CliAction,
+    cli_arg_parser,
     find_project_config_dir,
     load_config_file,
-    cli_arg_parser,
 )
-from vectorcode import __version__
-from vectorcode.init import init
-from vectorcode.query import query
-from vectorcode.vectorise import vectorise
-from vectorcode.drop import drop
-from vectorcode.ls import ls
+from vectorcode.subcommands import drop, init, ls, query, vectorise
 
 
 def main():
