@@ -52,9 +52,8 @@ end
 ---@param bufnr integer?
 ---@param opts VectorCodeConfig?
 ---@param query_cb (fun(buf_number: integer): string)?
----@param events string[]
+---@param events string[]?
 function M.register_buffer(bufnr, opts, query_cb, events)
-  events = events or { "BufWritePost", "InsertEnter", "BufReadPost" }
   if M.buf_is_registered(bufnr) then
     -- update the options and/or query_cb
     vim.schedule(function()
@@ -66,6 +65,7 @@ function M.register_buffer(bufnr, opts, query_cb, events)
     end)
     return
   end
+  events = events or { "BufWritePost", "InsertEnter", "BufReadPost" }
   query_cb = query_cb
     or function(buf_number)
       return table.concat(vim.api.nvim_buf_get_lines(buf_number, 0, -1, false), "\n")
