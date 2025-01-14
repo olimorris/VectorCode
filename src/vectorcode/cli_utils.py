@@ -11,12 +11,17 @@ from typing import Any, Optional, Union
 
 PathLike = Union[str, Path]
 
+GLOBAL_CONFIG_PATH = os.path.join(
+    os.path.expanduser("~"), ".config", "vectorcode", "config.json"
+)
+
 
 class CliAction(Enum):
     vectorise = "vectorise"
     query = "query"
     drop = "drop"
     ls = "ls"
+    init = "init"
 
 
 @dataclass
@@ -30,7 +35,7 @@ class Config:
     query: Optional[str] = None
     host: str = "localhost"
     port: int = 8000
-    embedding_function: str = "DefaultEmbeddingFunction"
+    embedding_function: str = ""  # This should fallback to whatever the default is.
     embedding_params: dict[str, Any] = field(default_factory=(lambda: {}))
     n_result: int = 3
 
@@ -115,6 +120,12 @@ def cli_arg_parser():
 
     subparsers.add_parser("drop", parents=[shared_parser], help="Remove a collection.")
 
+    subparsers.add_parser(
+        "init",
+        parents=[shared_parser],
+        help="Initialise a directory as VectorCode project root.",
+    )
+
     shared_args, unknowns = shared_parser.parse_known_args()
     main_args = main_parser.parse_args(unknowns)
     if main_args.action is None:
@@ -157,9 +168,7 @@ def expand_envs_in_dict(d: dict):
 def load_config_file(path: Optional[PathLike] = None):
     """Load config file from ~/.config/vectorcode/config.json"""
     if path is None:
-        path = os.path.join(
-            os.path.expanduser("~"), ".config", "vectorcode", "config.json"
-        )
+        path = GLOBAL_CONFIG_PATH
     if os.path.isfile(path):
         with open(path) as fin:
             config = json.load(fin)
@@ -169,9 +178,9 @@ def load_config_file(path: Optional[PathLike] = None):
     return Config()
 
 
-def find_project_config_dir():
+def find_project_config_dir(start_from: PathLike = "."):
     """Returns the project-local config directory."""
-    current_dir = Path(".").resolve()
+    current_dir = Path(start_from).resolve()
     while current_dir:
         to_be_checked = os.path.join(current_dir, ".vectorcode/")
         if os.path.isdir(to_be_checked):

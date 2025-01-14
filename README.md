@@ -25,6 +25,7 @@ neovim plugin because that's what I used to write this tool.
   * [CLI tool](#cli-tool)
 * [Usage ](#usage-)
   * [CLI tool](#cli-tool-1)
+    * [Initialising Project-Local Configuration ](#initialising-project-local-configuration-)
     * [Vectorising documents](#vectorising-documents)
     * [Querying from a collection](#querying-from-a-collection)
     * [Listing all collections ](#listing-all-collections-)
@@ -142,6 +143,28 @@ This tool creates a `collection` (just like tables in traditional databases) for
 project. The collections are identified by project root, which, by default, is
 the current working directory. You can override this by using the `--project_root
 <path_to_your_project_root>` argument.
+
+#### Initialising Project-Local Configuration 
+
+```bash
+vectorcode init 
+```
+Create a project-local configuration at the current directory (or the directory
+specified by the `--project_root` flag). This directory acts like a `.git`
+directory. Consider the following file directory:
+```
+foo/
+foo/.vectorcode/
+foo/bar/
+```
+Running `vectorcode init` command in `foo/` creates the `foo/.vectorcode/`
+directory, which can contain the project-local `config.json`. When 
+`foo/.vectorcode/` is present, `foo/` will be used as the project-root for 
+VectorCode when you run `vectorcode` command from any of the subdirectories of 
+`foo/`, unless overridden by `--project_root`. 
+
+When you run `vectorcode init` and a global configuration file is present, it'll
+be copied to your project-local config directory.
 
 #### Vectorising documents
 ```bash
