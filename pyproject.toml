@@ -27,4 +27,9 @@ source = "file"
 path = "./src/vectorcode/__init__.py"
 
 [dependency-groups]
-dev = ["ipython>=8.31.0", "ruff>=0.9.1", "viztracer>=1.0.0"]
+dev = [
+    "ipython>=8.31.0",
+    "ruff>=0.9.1",
+    "viztracer>=1.0.0",
+    "pre-commit>=4.0.1",
+]
