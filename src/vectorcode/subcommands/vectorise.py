@@ -1,4 +1,5 @@
 import json
+import pathspec
 import os
 from vectorcode.cli_utils import Config, expand_globs, expand_path
 from vectorcode.common import get_client, make_or_get_collection, verify_ef
@@ -12,11 +13,25 @@ def vectorise(configs: Config) -> int:
         return 1
     files = expand_globs(configs.files or [], recursive=configs.recursive)
 
+    gitignore_path = os.path.join(configs.project_root, ".gitignore")
+    if os.path.isfile(gitignore_path):
+        with open(gitignore_path) as fin:
+            gitignore_spec = pathspec.GitIgnoreSpec.from_lines(fin.readlines())
+    else:
+        gitignore_spec = None
+
     stats = {
         "add": 0,
         "update": 0,
     }
     for file in tqdm.tqdm(files, total=len(files), disable=configs.pipe):
+        if (
+            (not configs.force)
+            and gitignore_spec is not None
+            and gitignore_spec.match_file(file)
+        ):
+            # handles gitignore.
+            continue
         with open(file) as fin:
             content = "".join(fin.readlines())
 

@@ -39,6 +39,7 @@ class Config:
     embedding_function: str = ""  # This should fallback to whatever the default is.
     embedding_params: dict[str, Any] = field(default_factory=(lambda: {}))
     n_result: int = 3
+    force: bool = False
 
     @classmethod
     def import_from(cls, config_dict: dict[str, Any]) -> "Config":
@@ -118,6 +119,13 @@ def cli_arg_parser():
         default=False,
         help="Recursive indexing for directories.",
     )
+    vectorise_parser.add_argument(
+        "--force",
+        "-f",
+        action="store_true",
+        default=False,
+        help="Force to vectorise the file(s) against the gitignore.",
+    )
 
     query_parser = subparsers.add_parser(
         "query", parents=[shared_parser], help="Send query to retrieve documents."
@@ -148,9 +156,11 @@ def cli_arg_parser():
     query = None
     recursive = False
     number_of_result = 1
+    force = False
     if main_args.action == "vectorise":
         files = main_args.file_paths
         recursive = main_args.recursive
+        force = main_args.force
     elif main_args.action == "query":
         query = " ".join(main_args.query)
         number_of_result = main_args.number
@@ -162,6 +172,7 @@ def cli_arg_parser():
         recursive=recursive,
         n_result=number_of_result,
         pipe=main_args.pipe or shared_args.pipe,
+        force=force,
     )
 
 

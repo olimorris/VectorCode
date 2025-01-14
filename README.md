@@ -171,7 +171,8 @@ be copied to your project-local config directory.
 vectorcode vectorise src/*.py
 ```
 "Orphaned documents" that has been removed in your filesystem but still "exists"
-in the database will be automatically cleaned.
+in the database will be automatically cleaned. This will respect `.gitignore`
+under project root, unless the `-f`/`--force` flag is set.
 
 #### Querying from a collection
 ```bash 

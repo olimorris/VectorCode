@@ -17,7 +17,6 @@ def main():
 
     if project_config_dir is not None:
         project_config_file = os.path.join(project_config_dir, "config.json")
-        print(project_config_dir)
         if os.path.isfile(project_config_file):
             config_file_configs = config_file_configs.merge_from(
                 load_config_file(project_config_file)
