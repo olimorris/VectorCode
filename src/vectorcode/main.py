@@ -6,6 +6,7 @@ from vectorcode.cli_utils import (
     load_config_file,
     cli_arg_parser,
 )
+from vectorcode import __version__
 from vectorcode.init import init
 from vectorcode.query import query
 from vectorcode.vectorise import vectorise
@@ -39,4 +40,7 @@ def main():
             return_val = ls(final_configs)
         case CliAction.init:
             return_val = init(final_configs)
+        case CliAction.version:
+            print(__version__)
+            return_val = 0
     return return_val

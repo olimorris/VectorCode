@@ -1,5 +1,6 @@
 import argparse
 import glob
+from vectorcode import __version__
 import json
 import os
 import sys
@@ -22,6 +23,7 @@ class CliAction(Enum):
     drop = "drop"
     ls = "ls"
     init = "init"
+    version = "version"
 
 
 @dataclass
@@ -89,9 +91,17 @@ def cli_arg_parser():
         default=False,
         help="Print structured output for other programs to process.",
     )
-    main_parser = argparse.ArgumentParser("vectorcode", parents=[shared_parser])
+    main_parser = argparse.ArgumentParser(
+        "vectorcode",
+        parents=[shared_parser],
+        description=f"VectorCode {__version__}: A CLI RAG utility.",
+    )
 
-    subparsers = main_parser.add_subparsers(dest="action", required=False)
+    subparsers = main_parser.add_subparsers(
+        dest="action",
+        required=False,
+        title="subcommands",
+    )
     subparsers.add_parser("ls", parents=[shared_parser], help="List all collections.")
 
     vectorise_parser = subparsers.add_parser(
@@ -124,6 +134,10 @@ def cli_arg_parser():
         "init",
         parents=[shared_parser],
         help="Initialise a directory as VectorCode project root.",
+    )
+
+    subparsers.add_parser(
+        "version", parents=[shared_parser], help="Print the version number."
     )
 
     shared_args, unknowns = shared_parser.parse_known_args()
