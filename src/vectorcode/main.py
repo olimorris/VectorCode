@@ -1,5 +1,4 @@
 import os
-from pathlib import Path
 from vectorcode.cli_utils import (
     CliAction,
     find_project_config_dir,

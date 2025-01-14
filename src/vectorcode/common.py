@@ -9,7 +9,6 @@ from chromadb.api import ClientAPI
 from chromadb.utils import embedding_functions
 
 from vectorcode.cli_utils import Config, expand_path
-import httpx
 
 
 def get_client(configs: Config) -> ClientAPI:
