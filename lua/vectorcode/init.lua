@@ -46,7 +46,7 @@ M.query = function(query_message, opts)
   job:sync(opts.timeout_ms)
 
   local decoded_response = {}
-  if raw_response ~= nil then
+  if raw_response ~= nil and raw_response ~= "" then
     decoded_response = vim.json.decode(raw_response, { object = true, array = true })
     if opts.notify then
       vim.notify(
