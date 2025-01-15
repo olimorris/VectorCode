@@ -8,6 +8,7 @@ from dataclasses import dataclass, field, fields
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union
+import shtab
 
 PathLike = Union[str, Path]
 
@@ -91,11 +92,12 @@ class Config:
 
 def cli_arg_parser():
     shared_parser = argparse.ArgumentParser(add_help=False)
+
     shared_parser.add_argument(
         "--project_root",
         default="",
         help="Project root to be used as an identifier of the project.",
-    )
+    ).complete = shtab.DIRECTORY
     shared_parser.add_argument(
         "--pipe",
         "-p",
@@ -108,7 +110,12 @@ def cli_arg_parser():
         parents=[shared_parser],
         description=f"VectorCode {__version__}: A CLI RAG utility.",
     )
-
+    shtab.add_argument_to(
+        main_parser,
+        ["-s", "--print-completion"],
+        parent=main_parser,
+        help="Print completion script.",
+    )
     subparsers = main_parser.add_subparsers(
         dest="action",
         required=False,
@@ -123,7 +130,7 @@ def cli_arg_parser():
     )
     vectorise_parser.add_argument(
         "file_paths", nargs="+", help="Paths to files to be vectorised."
-    )
+    ).complete = shtab.FILE
     vectorise_parser.add_argument(
         "--recursive",
         "-r",

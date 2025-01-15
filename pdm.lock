@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:3e84a386bf654a6d2886b53b75b7fdf29ddde4007857e7cf94c6c5395c2d0c53"
+content_hash = "sha256:a41f0b298c3aabae0a22a79a8059fac73d385d8faada6a6ed676b2ade3b4ce49"
 
 [[metadata.targets]]
 requires_python = ">=3.11"
@@ -1868,6 +1868,15 @@ summary = ""
 files = [
     {file = "shellingham-1.5.4-py2.py3-none-any.whl", hash = "sha256:7ecfff8f2fd72616f7481040475a65b2bf8af90a56c89140852d1120324e8686"},
     {file = "shellingham-1.5.4.tar.gz", hash = "sha256:8dbca0739d487e5bd35ab3ca4b36e11c4078f3a234bfce294b0a0291363404de"},
+]
+
+[[package]]
+name = "shtab"
+version = "1.7.1"
+summary = ""
+files = [
+    {file = "shtab-1.7.1-py3-none-any.whl", hash = "sha256:32d3d2ff9022d4c77a62492b6ec875527883891e33c6b479ba4d41a51e259983"},
+    {file = "shtab-1.7.1.tar.gz", hash = "sha256:4e4bcb02eeb82ec45920a5d0add92eac9c9b63b2804c9196c1f1fdc2d039243c"},
 ]
 
 [[package]]

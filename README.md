@@ -31,6 +31,7 @@ neovim plugin because that's what I used to write this tool.
     * [Querying from a collection](#querying-from-a-collection)
     * [Listing all collections ](#listing-all-collections-)
     * [Removing a collection ](#removing-a-collection-)
+    * [Shell Completion](#shell-completion)
   * [NeoVim plugin](#neovim-plugin)
     * [Asynchronous Caching](#asynchronous-caching)
     * [Lualine Integration](#lualine-integration)
@@ -229,6 +230,18 @@ vectorcode drop
 
 For `vectorise`, `query` and `ls`, adding `--pipe` or `-p` flag will convert the
 output into a structured format. This is explained in detail [here](#for-developers).
+
+#### Shell Completion
+
+```bash 
+vectorcode -s {bash,zsh,tcsh}
+```
+or 
+```bash 
+vectorcode --print-completion {bash,zsh,tcsh}
+```
+will print the completion script for the corresponding shell. Please consult the
+documentation of your shell for instructions of how to use them.
 
 ### NeoVim plugin
 > In this document I will be using [qwen2.5-coder](https://github.com/QwenLM/Qwen2.5-Coder) 
