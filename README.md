@@ -85,6 +85,9 @@ Run the following command:
 pipx install vectorcode
 ```
 
+To install the latest commit from GitHub, clone the repo and run `pipx install
+<path_to_repo>`.
+
 ### NeoVim users: 
 
 This repo doubles as a neovim plugin. Use your favourite plugin manager to
