@@ -7,12 +7,12 @@ local notify_opts = vc_config.notify_opts
 ---@field retrieval VectorCodeResult[]?
 ---@field options VectorCodeConfig
 ---@field query_cb (fun(buf_number: integer): string)?
----@field running boolean
+---@field jobs table<integer, boolean>
 local default_vectorcode_cache = {
   enabled = true,
   retrieval = {},
   options = vc_config.get_user_config(),
-  running = false,
+  jobs = {},
 }
 
 ---@param query_message string
@@ -23,26 +23,31 @@ local function async_runner(query_message, buf_nr)
   end
   vim.schedule(function()
     local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
-    cache.running = true
     vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
   end)
-  vim.system(
-    {
-      "vectorcode",
+  local job = require("plenary.job"):new({
+    command = "vectorcode",
+    args = {
       "query",
       "--pipe",
       "-n",
       tostring(vim.b[buf_nr].vectorcode_cache.options.n_query),
       query_message,
     },
-    {},
-    vim.schedule_wrap(function(obj)
-      local ok, json =
-        pcall(vim.json.decode, obj.stdout or "[]", { array = true, object = true })
-      if ok then
+    on_start = function() end,
+    on_exit = function(self, code, signal)
+      local ok, json = pcall(
+        vim.json.decode,
+        table.concat(self:result()) or "[]",
+        { array = true, object = true }
+      )
+      if not ok or code ~= 0 then
+        return
+      end
+      vim.schedule(function()
         ---@type VectorCodeCache
         local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
-        cache.retrieval = json
+        cache.retrieval = json or {}
         vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
         if cache.options.notify then
           vim.notify(
@@ -51,9 +56,22 @@ local function async_runner(query_message, buf_nr)
             notify_opts
           )
         end
-      end
-    end)
-  )
+      end)
+      vim.schedule(function()
+        ---@type VectorCodeCache
+        local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
+        cache.jobs[self.pid] = nil
+        vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
+      end)
+    end,
+  })
+  job:start()
+  vim.schedule(function()
+    ---@type VectorCodeCache
+    local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
+    cache.jobs[job.pid] = true
+    vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
+  end)
 end
 
 ---@param bufnr integer?
@@ -91,7 +109,7 @@ function M.register_buffer(bufnr, opts, query_cb, events)
       retrieval = nil,
       options = opts,
       query_cb = query_cb,
-      running = false,
+      jobs = {},
     })
     vim.api.nvim_create_autocmd(events, {
       callback = function()
@@ -145,10 +163,11 @@ function M.lualine()
       if cache.enabled then
         if cache.retrieval ~= nil then
           message = message .. tostring(#cache.retrieval)
-        elseif cache.running then
-          message = message .. " "
+        end
+        if #(vim.tbl_keys(cache.jobs)) > 0 then
+          message = message .. "  "
         else
-          message = message .. " "
+          message = message .. "  "
         end
       else
         message = message .. " "

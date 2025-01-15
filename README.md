@@ -32,6 +32,7 @@ neovim plugin because that's what I used to write this tool.
     * [Removing a collection ](#removing-a-collection-)
   * [NeoVim plugin](#neovim-plugin)
     * [Asynchronous Caching](#asynchronous-caching)
+    * [Lualine Integration](#lualine-integration)
     * [The Boring Stuff](#the-boring-stuff)
   * [For Developers](#for-developers)
     * [`vectorise`](#vectorise)
@@ -328,6 +329,16 @@ vim.api.nvim_create_autocmd("LspAttach", {
 And in your completion prompt construction, you can use
 `require("vectorcode.cacher").query_from_cache(bufnr)` to get the cached
 retrieval results that you use to build your prompt.
+
+#### Lualine Integration
+
+```lua
+opts = {
+  tabline = {
+    lualine_y = { require("vectorcode.cacher").lualine() }
+  }
+}
+```
 
 #### The Boring Stuff
 Under the hood, the caching mechanism stores the information in
