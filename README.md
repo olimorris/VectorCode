@@ -411,7 +411,7 @@ The `drop` command doesn't offer a `--pipe` model output at the moment.
 - [x] ~NeoVim Lua API with cache to skip the retrieval when a project has not
   been indexed~ Returns empty array instead;
 - [ ] query by file path;
-- [ ] job pool for async caching;
+- [x] job pool for async caching;
 - [x] [persistent-client](https://docs.trychroma.com/docs/run-chroma/persistent-client);
 - [x] respect `.gitignore`;
 - [x] implement some sort of project-root anchors (such as `.git` or a custom
