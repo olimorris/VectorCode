@@ -111,20 +111,20 @@ function M.register_buffer(bufnr, opts, query_cb, events)
       query_cb = query_cb,
       jobs = {},
     })
-    vim.api.nvim_create_autocmd(events, {
-      callback = function()
-        assert(
-          vim.b[bufnr].vectorcode_cache ~= nil,
-          "buffer vectorcode cache not registered"
-        )
-        vim.schedule(function()
-          local cb = vim.b[bufnr].vectorcode_cache.query_cb
-          async_runner(cb(bufnr), bufnr)
-        end)
-      end,
-      buffer = bufnr,
-    })
+    async_runner(query_cb(bufnr), bufnr)
   end)
+
+  vim.api.nvim_create_autocmd(events, {
+    callback = function()
+      assert(
+        vim.b[bufnr].vectorcode_cache ~= nil,
+        "buffer vectorcode cache not registered"
+      )
+      local cb = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache").query_cb
+      async_runner(cb(bufnr), bufnr)
+    end,
+    buffer = bufnr,
+  })
 end
 
 ---@param bufnr integer?
