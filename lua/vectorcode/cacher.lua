@@ -36,6 +36,12 @@ local function async_runner(query_message, buf_nr)
     },
     on_start = function() end,
     on_exit = function(self, code, signal)
+      vim.schedule(function()
+        ---@type VectorCodeCache
+        local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
+        cache.jobs[self.pid] = nil
+        vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
+      end)
       local ok, json = pcall(
         vim.json.decode,
         table.concat(self:result()) or "[]",
@@ -57,16 +63,10 @@ local function async_runner(query_message, buf_nr)
           )
         end
       end)
-      vim.schedule(function()
-        ---@type VectorCodeCache
-        local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
-        cache.jobs[self.pid] = nil
-        vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
-      end)
     end,
   })
-  job:start()
   vim.schedule(function()
+    job:start()
     ---@type VectorCodeCache
     local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
     cache.jobs[job.pid] = true
@@ -111,20 +111,18 @@ function M.register_buffer(bufnr, opts, query_cb, events)
       query_cb = query_cb,
       jobs = {},
     })
-    async_runner(query_cb(bufnr), bufnr)
+    vim.api.nvim_create_autocmd(events, {
+      callback = vim.schedule_wrap(function()
+        assert(
+          vim.b[bufnr].vectorcode_cache ~= nil,
+          "buffer vectorcode cache not registered"
+        )
+        local cb = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache").query_cb
+        async_runner(cb(bufnr), bufnr)
+      end),
+      buffer = bufnr,
+    })
   end)
-
-  vim.api.nvim_create_autocmd(events, {
-    callback = function()
-      assert(
-        vim.b[bufnr].vectorcode_cache ~= nil,
-        "buffer vectorcode cache not registered"
-      )
-      local cb = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache").query_cb
-      async_runner(cb(bufnr), bufnr)
-    end,
-    buffer = bufnr,
-  })
 end
 
 ---@param bufnr integer?
