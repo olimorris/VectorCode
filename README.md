@@ -18,6 +18,7 @@ neovim plugin because that's what I used to write this tool.
 
 <!-- mtoc-start -->
 
+* [Why VectorCode? ](#why-vectorcode-)
 * [Prerequisites](#prerequisites)
 * [Installation](#installation)
   * [NeoVim users: ](#neovim-users-)
@@ -42,6 +43,23 @@ neovim plugin because that's what I used to write this tool.
 * [TODOs](#todos)
 
 <!-- mtoc-end -->
+
+## Why VectorCode? 
+LLMs usually have very limited understanding about close-source and/or infamous 
+projects, as well as cutting edge developments that have not made it into the
+releases. Their capabilities on these projects are quite limited. Take my little
+toy sudoku-solving project as an example: When I wrote the first few lines and
+want the LLM to fill in the list of solvers that I implemented in
+`solver_candidates`, without project context, the completions are simply random 
+guesses that *might* be part of another sudoku project:
+![](./images/sudoku_no_rag.png)
+But with RAG context provided by VectorCode, my completion LLM was able to
+provide completions that I actually implemented:
+![](./images/sudoku_with_rag.png)
+This makes the completion results far more usable. 
+[A similar strategy](https://docs.continue.dev/customize/deep-dives/codebase) 
+is implemented in [continue](https://www.continue.dev/), a popular AI completion
+and chat plugin available on VSCode and JetBrain products.
 
 ## Prerequisites
 
@@ -84,6 +102,9 @@ For `lazy.nvim`:
   },
 }
 ```
+
+It might be helpful to add VectorCode as a dependency of your AI completion
+plugin.
 
 ## Configuration
 
