@@ -79,6 +79,9 @@ end
 ---@param query_cb (fun(buf_number: integer): string)?
 ---@param events string[]?
 function M.register_buffer(bufnr, opts, query_cb, events)
+  if bufnr == 0 or bufnr == nil then
+    bufnr = vim.api.nvim_get_current_buf()
+  end
   if M.buf_is_registered(bufnr) then
     -- update the options and/or query_cb
     vim.schedule(function()
@@ -101,7 +104,6 @@ function M.register_buffer(bufnr, opts, query_cb, events)
       return table.concat(vim.api.nvim_buf_get_lines(buf_number, 0, -1, false), "\n")
     end
   opts = vim.tbl_deep_extend("keep", opts or {}, vc_config.get_user_config())
-  bufnr = bufnr or vim.api.nvim_get_current_buf()
   vim.schedule(function()
     ---@type VectorCodeCache
     vim.api.nvim_buf_set_var(bufnr, "vectorcode_cache", {
@@ -111,15 +113,19 @@ function M.register_buffer(bufnr, opts, query_cb, events)
       query_cb = query_cb,
       jobs = {},
     })
+  end)
+  vim.schedule(function()
     vim.api.nvim_create_autocmd(events, {
-      callback = vim.schedule_wrap(function()
+      callback = function()
         assert(
           vim.b[bufnr].vectorcode_cache ~= nil,
           "buffer vectorcode cache not registered"
         )
-        local cb = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache").query_cb
-        async_runner(cb(bufnr), bufnr)
-      end),
+        vim.schedule(function()
+          local cb = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache").query_cb
+          async_runner(cb(bufnr), bufnr)
+        end)
+      end,
       buffer = bufnr,
     })
   end)
@@ -128,7 +134,9 @@ end
 ---@param bufnr integer?
 ---@return boolean
 M.buf_is_registered = function(bufnr)
-  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  if bufnr == 0 or bufnr == nil then
+    bufnr = vim.api.nvim_get_current_buf()
+  end
   return type(vim.b[bufnr].vectorcode_cache) == "table"
 end
 
@@ -136,7 +144,9 @@ end
 ---@return VectorCodeResult[]
 M.query_from_cache = function(bufnr)
   local result = {}
-  bufnr = bufnr or vim.api.nvim_get_current_buf()
+  if bufnr == 0 or bufnr == nil then
+    bufnr = vim.api.nvim_get_current_buf()
+  end
   if M.buf_is_registered(bufnr) then
     ---@type VectorCodeCache
     local vectorcode_cache = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache")
