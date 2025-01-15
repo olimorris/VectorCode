@@ -147,8 +147,8 @@ flag.
   `OllamaEmbeddingFunction(url="http://127.0.0.1:11434/api/embeddings",
   model_name="nomic-embed-text")`.
 - `host` and `port`: Chromadb server host and port;
-- `db_path`: Path to local persistent database. If `host` or `port` is set, this
-  will be ignored.
+- `db_path`: Path to local persistent database. **If `host` or `port` is set, this
+  will be ignored.**
 
 For the convenience of deployment, environment variables in the
 configuration values will be automatically expanded so that you can override
@@ -337,7 +337,7 @@ To use the per-buffer async cache, you need to use the following API:
   has not been registered, it will return an empty array. The returned data is
   in the same format as the synchronous `query` API.
   - `bufnr` (optional): integer, the buffer number to retrieve cache from.
-    Defaults to 0 (the current buffer).
+    Defaults to the current buffer.
 
 With these async caching mechanism, you'll be able to utilise the retrieval with
 minimum latency and without blocking the main UI. All you need to do is to setup
