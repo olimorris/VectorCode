@@ -44,6 +44,7 @@ class Config:
     n_result: int = 3
     force: bool = False
     db_path: Optional[str] = None
+    chunk_size: int = -1
 
     @classmethod
     def import_from(cls, config_dict: dict[str, Any]) -> "Config":
@@ -134,6 +135,13 @@ def cli_arg_parser():
         "file_paths", nargs="+", help="Paths to files to be vectorised."
     ).complete = shtab.FILE
     vectorise_parser.add_argument(
+        "-c",
+        "--chunk_size",
+        type=int,
+        default=-1,
+        help="Size of chunks (-1 for no chunking).",
+    )
+    vectorise_parser.add_argument(
         "--recursive",
         "-r",
         action="store_true",
@@ -178,13 +186,16 @@ def cli_arg_parser():
     recursive = False
     number_of_result = 1
     force = False
+    chunk_size = -1
     if main_args.action == "vectorise":
         files = main_args.file_paths
         recursive = main_args.recursive
         force = main_args.force
+        chunk_size = main_args.chunk_size
     elif main_args.action == "query":
         query = " ".join(main_args.query)
         number_of_result = main_args.number
+
     return Config(
         action=CliAction(main_args.action),
         files=files,
@@ -194,6 +205,7 @@ def cli_arg_parser():
         n_result=number_of_result,
         pipe=main_args.pipe or shared_args.pipe,
         force=force,
+        chunk_size=chunk_size,
     )
 
 

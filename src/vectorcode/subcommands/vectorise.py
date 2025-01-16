@@ -1,12 +1,26 @@
+import concurrent.futures as futures
+import hashlib
 import json
 import os
+import uuid
+from threading import Lock
 
 import pathspec
 import tqdm
 from chromadb.api.types import IncludeEnum
 
+from vectorcode.chunking import FileChunker
 from vectorcode.cli_utils import Config, expand_globs, expand_path
 from vectorcode.common import get_client, make_or_get_collection, verify_ef
+
+
+def hash_str(string: str) -> str:
+    """Return the sha-256 hash of a string."""
+    return hashlib.sha256(string.encode()).hexdigest()
+
+
+def get_uuid() -> str:
+    return uuid.uuid4().hex
 
 
 def vectorise(configs: Config) -> int:
@@ -24,29 +38,42 @@ def vectorise(configs: Config) -> int:
         gitignore_spec = None
 
     stats = {"add": 0, "update": 0, "removed": 0}
-    for file in tqdm.tqdm(files, total=len(files), disable=configs.pipe):
+    stats_lock = Lock()
+
+    def chunked_add(file_path):
         if (
             (not configs.force)
             and gitignore_spec is not None
-            and gitignore_spec.match_file(file)
+            and gitignore_spec.match_file(file_path)
         ):
             # handles gitignore.
-            continue
-        with open(file) as fin:
-            content = "".join(fin.readlines())
+            return
 
-        if content:
-            path_str = str(expand_path(str(file), True))
-            if len(collection.get(where={"path": path_str})["ids"]):
-                collection.update(
-                    ids=[path_str], documents=[content], metadatas=[{"path": path_str}]
-                )
-                stats["update"] += 1
-            else:
+        full_path_str = str(expand_path(str(file_path), True))
+        stats_lock.acquire()
+        if len(collection.get(where={"path": full_path_str})["ids"]):
+            collection.delete(where={"path": full_path_str})
+            stats["update"] += 1
+        else:
+            stats["add"] += 1
+        stats_lock.release()
+        with open(full_path_str) as fin:
+            for chunk in FileChunker(configs.chunk_size).chunk(fin):
                 collection.add(
-                    [path_str], documents=[content], metadatas=[{"path": path_str}]
+                    ids=[get_uuid()],
+                    documents=[chunk],
+                    metadatas=[{"path": full_path_str}],
                 )
-                stats["add"] += 1
+
+    with tqdm.tqdm(
+        total=len(files), desc="Vectorising files...", disable=configs.pipe
+    ) as bar:
+        with futures.ThreadPoolExecutor(
+            max_workers=max((os.cpu_count() or 1) - 1, 1)
+        ) as executor:
+            jobs = {executor.submit(chunked_add, file): file for file in files}
+            for future in futures.as_completed(jobs):
+                bar.update(1)
 
     all_results = collection.get(include=[IncludeEnum.metadatas])
     if all_results is not None and all_results.get("metadatas"):

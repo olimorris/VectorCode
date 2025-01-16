@@ -1,5 +1,6 @@
 import json
 
+from chromadb.api.types import IncludeEnum
 from chromadb.errors import InvalidCollectionException, InvalidDimensionException
 
 from vectorcode.cli_utils import Config
@@ -32,19 +33,20 @@ def query(configs: Config) -> int:
 
     try:
         results = collection.query(
-            query_texts=[configs.query or ""], n_results=configs.n_result
+            query_texts=[configs.query or ""],
+            n_results=configs.n_result,
+            include=[IncludeEnum.metadatas, IncludeEnum.distances],
         )
     except IndexError:
         # no results found
-        return 0
-    if results["documents"] is None or len(results["documents"]) == 0:
         return 0
 
     structured_result = []
 
     for idx in range(len(results["ids"][0])):
-        path = str(results["ids"][0][idx])
-        document = results["documents"][0][idx]
+        path = str(results["metadatas"][0][idx]["path"])
+        with open(path) as fin:
+            document = "".join(fin.readlines())
         structured_result.append({"path": path, "document": document})
 
     if configs.pipe:
