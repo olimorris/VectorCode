@@ -46,6 +46,7 @@ class Config:
     db_path: Optional[str] = None
     chunk_size: int = -1
     overlap_ratio: float = 0.2
+    query_multiplier: int = -1
 
     @classmethod
     def import_from(cls, config_dict: dict[str, Any]) -> "Config":
@@ -167,6 +168,9 @@ def cli_arg_parser():
     )
     query_parser.add_argument("query", nargs="+", help="Query keywords.")
     query_parser.add_argument(
+        "--multiplier", "-m", type=int, default=-1, help="Query multiplier."
+    )
+    query_parser.add_argument(
         "-n", "--number", type=int, default=1, help="Number of results to retrieve."
     )
 
@@ -193,6 +197,7 @@ def cli_arg_parser():
     force = False
     chunk_size = -1
     overlap_ratio = 0.2
+    query_multiplier = -1
     if main_args.action == "vectorise":
         files = main_args.file_paths
         recursive = main_args.recursive
@@ -202,7 +207,7 @@ def cli_arg_parser():
     elif main_args.action == "query":
         query = " ".join(main_args.query)
         number_of_result = main_args.number
-
+        query_multiplier = main_args.multiplier
     return Config(
         action=CliAction(main_args.action),
         files=files,
@@ -214,6 +219,7 @@ def cli_arg_parser():
         force=force,
         chunk_size=chunk_size,
         overlap_ratio=overlap_ratio,
+        query_multiplier=query_multiplier,
     )
 
 

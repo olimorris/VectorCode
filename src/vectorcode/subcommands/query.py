@@ -58,9 +58,13 @@ def query(configs: Config) -> int:
         )
     )
     try:
+        num_query = collection.count()
+        if configs.query_multiplier > 0:
+            num_query = configs.n_result * configs.query_multiplier
+        print(num_query)
         results = collection.query(
             query_texts=query_chunks,
-            n_results=configs.n_result * 100,
+            n_results=num_query,
             include=[IncludeEnum.metadatas, IncludeEnum.distances],
         )
     except IndexError:
