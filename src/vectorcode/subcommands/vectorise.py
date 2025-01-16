@@ -58,7 +58,9 @@ def vectorise(configs: Config) -> int:
             stats["add"] += 1
         stats_lock.release()
         with open(full_path_str) as fin:
-            for chunk in FileChunker(configs.chunk_size).chunk(fin):
+            for chunk in FileChunker(configs.chunk_size, configs.overlap_ratio).chunk(
+                fin
+            ):
                 collection.add(
                     ids=[get_uuid()],
                     documents=[chunk],
