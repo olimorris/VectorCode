@@ -1,8 +1,11 @@
 import json
+from collections import defaultdict
+from typing import DefaultDict
 
-from chromadb.api.types import IncludeEnum
+from chromadb.api.types import IncludeEnum, QueryResult
 from chromadb.errors import InvalidCollectionException, InvalidDimensionException
 
+from vectorcode.chunking import StringChunker
 from vectorcode.cli_utils import Config
 from vectorcode.common import (
     get_client,
@@ -10,6 +13,24 @@ from vectorcode.common import (
     get_embedding_function,
     verify_ef,
 )
+
+
+def top_k_results(results: QueryResult, configs: Config) -> list[str]:
+    assert results["metadatas"] is not None
+    assert results["distances"] is not None
+    documents: DefaultDict[str, list[float]] = defaultdict(list)
+    for query_chunk_idx in range(len(results["ids"])):
+        chunk_metas = results["metadatas"][query_chunk_idx]
+        chunk_distances = results["distances"][query_chunk_idx]
+        paths = [str(meta["path"]) for meta in chunk_metas]
+        assert len(paths) == len(chunk_distances)
+        for distance, path in zip(chunk_distances, paths):
+            documents[path].append(distance)
+
+    doc_list = sorted(
+        documents.keys(), key=lambda x: sum(documents[x]) / len(documents[x])
+    )
+    return doc_list[: configs.n_result]
 
 
 def query(configs: Config) -> int:
@@ -31,10 +52,15 @@ def query(configs: Config) -> int:
     if not configs.pipe:
         print("Starting querying...")
 
+    query_chunks = list(
+        StringChunker(configs.chunk_size, configs.overlap_ratio).chunk(
+            configs.query or ""
+        )
+    )
     try:
         results = collection.query(
-            query_texts=[configs.query or ""],
-            n_results=configs.n_result,
+            query_texts=query_chunks,
+            n_results=configs.n_result * 100,
             include=[IncludeEnum.metadatas, IncludeEnum.distances],
         )
     except IndexError:
@@ -42,11 +68,10 @@ def query(configs: Config) -> int:
         return 0
 
     structured_result = []
-
-    for idx in range(len(results["ids"][0])):
-        path = str(results["metadatas"][0][idx]["path"])
+    aggregated_results = top_k_results(results, configs)
+    for path in aggregated_results:
         with open(path) as fin:
-            document = "".join(fin.readlines())
+            document = fin.read()
         structured_result.append({"path": path, "document": document})
 
     if configs.pipe:

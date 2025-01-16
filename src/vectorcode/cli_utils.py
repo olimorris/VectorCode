@@ -96,7 +96,17 @@ class Config:
 
 def cli_arg_parser():
     shared_parser = argparse.ArgumentParser(add_help=False)
-
+    chunkinng_parser = argparse.ArgumentParser(add_help=False)
+    chunkinng_parser.add_argument(
+        "--overlap", "-o", type=float, help="Ratio of overlaps between chunks."
+    )
+    chunkinng_parser.add_argument(
+        "-c",
+        "--chunk_size",
+        type=int,
+        default=-1,
+        help="Size of chunks (-1 for no chunking).",
+    )
     shared_parser.add_argument(
         "--project_root",
         default="",
@@ -129,19 +139,12 @@ def cli_arg_parser():
 
     vectorise_parser = subparsers.add_parser(
         "vectorise",
-        parents=[shared_parser],
+        parents=[shared_parser, chunkinng_parser],
         help="Vectorise and send documents to chromadb.",
     )
     vectorise_parser.add_argument(
         "file_paths", nargs="+", help="Paths to files to be vectorised."
     ).complete = shtab.FILE
-    vectorise_parser.add_argument(
-        "-c",
-        "--chunk_size",
-        type=int,
-        default=-1,
-        help="Size of chunks (-1 for no chunking).",
-    )
     vectorise_parser.add_argument(
         "--recursive",
         "-r",
@@ -156,12 +159,11 @@ def cli_arg_parser():
         default=False,
         help="Force to vectorise the file(s) against the gitignore.",
     )
-    vectorise_parser.add_argument(
-        "--overlap", "-o", type=float, help="Ratio of overlaps between chunks."
-    )
 
     query_parser = subparsers.add_parser(
-        "query", parents=[shared_parser], help="Send query to retrieve documents."
+        "query",
+        parents=[shared_parser, chunkinng_parser],
+        help="Send query to retrieve documents.",
     )
     query_parser.add_argument("query", nargs="+", help="Query keywords.")
     query_parser.add_argument(
@@ -180,8 +182,7 @@ def cli_arg_parser():
         "version", parents=[shared_parser], help="Print the version number."
     )
 
-    shared_args, unknowns = shared_parser.parse_known_args()
-    main_args = main_parser.parse_args(unknowns)
+    main_args = main_parser.parse_args()
     if main_args.action is None:
         main_args = main_parser.parse_args(["--help"])
 
@@ -205,11 +206,11 @@ def cli_arg_parser():
     return Config(
         action=CliAction(main_args.action),
         files=files,
-        project_root=main_args.project_root or shared_args.project_root,
+        project_root=main_args.project_root,
         query=query,
         recursive=recursive,
         n_result=number_of_result,
-        pipe=main_args.pipe or shared_args.pipe,
+        pipe=main_args.pipe,
         force=force,
         chunk_size=chunk_size,
         overlap_ratio=overlap_ratio,
