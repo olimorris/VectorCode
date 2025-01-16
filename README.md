@@ -445,9 +445,12 @@ A JSON array of collection information of the following format will be printed:
 The `drop` command doesn't offer a `--pipe` model output at the moment.
 
 ## TODOs
+- [ ] query by file path;
+- [ ] chunking support;
+  - [ ] add metadata for files;
+  - [ ] chunk-size configuration;
 - [x] ~NeoVim Lua API with cache to skip the retrieval when a project has not
   been indexed~ Returns empty array instead;
-- [ ] query by file path;
 - [x] job pool for async caching;
 - [x] [persistent-client](https://docs.trychroma.com/docs/run-chroma/persistent-client);
 - [x] respect `.gitignore`;
