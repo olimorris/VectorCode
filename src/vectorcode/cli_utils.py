@@ -41,7 +41,7 @@ class Config:
     port: Optional[int] = None
     embedding_function: str = ""  # This should fallback to whatever the default is.
     embedding_params: dict[str, Any] = field(default_factory=(lambda: {}))
-    n_result: int = 3
+    n_result: int = 1
     force: bool = False
     db_path: Optional[str] = None
     chunk_size: int = -1
@@ -50,12 +50,6 @@ class Config:
 
     @classmethod
     def import_from(cls, config_dict: dict[str, Any]) -> "Config":
-        ef = config_dict.get("embedding_function")
-        if not isinstance(ef, str):
-            ef = "DefaultEmbeddingFunction"
-        ep = config_dict.get("embedding_params")
-        if not isinstance(ep, dict):
-            ep = {}
         db_path = config_dict.get("db_path")
         if config_dict.get("host") is None and config_dict.get("port") is None:
             host = None
@@ -74,11 +68,16 @@ class Config:
             db_path = None
         return Config(
             **{
-                "embedding_function": ef,
-                "embedding_params": ep,
+                "embedding_function": config_dict.get(
+                    "embedding_function", "SentenceTransformerEmbeddingFunction"
+                ),
+                "embedding_params": config_dict.get("embedding_params", {}),
                 "host": host,
                 "port": port,
                 "db_path": db_path,
+                "chunk_size": config_dict.get("chunk_size", -1),
+                "overlap_ratio": config_dict.get("overlap_ratio", 0.2),
+                "query_multiplier": config_dict.get("query_multiplier", -1),
             }
         )
 
