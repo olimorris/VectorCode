@@ -4,6 +4,9 @@ repos:
   hooks:
     - id: ruff
       language: python
+    - id: ruff
+      language: python
+      args: [ "check", "--fix", "--select", "I" ]
     - id: ruff-format
       language: python
 - repo: https://github.com/JohnnyMorganz/StyLua

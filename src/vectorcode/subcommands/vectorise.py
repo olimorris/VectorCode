@@ -1,10 +1,12 @@
 import json
-from chromadb.api.types import IncludeEnum
-import pathspec
 import os
+
+import pathspec
+import tqdm
+from chromadb.api.types import IncludeEnum
+
 from vectorcode.cli_utils import Config, expand_globs, expand_path
 from vectorcode.common import get_client, make_or_get_collection, verify_ef
-import tqdm
 
 
 def vectorise(configs: Config) -> int:

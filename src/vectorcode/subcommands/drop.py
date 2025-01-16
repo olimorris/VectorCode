@@ -1,6 +1,7 @@
-from vectorcode.common import get_client, get_collection_name
-from vectorcode.cli_utils import Config
 from chromadb.errors import InvalidCollectionException
+
+from vectorcode.cli_utils import Config
+from vectorcode.common import get_client, get_collection_name
 
 
 def drop(config: Config) -> int:

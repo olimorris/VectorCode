@@ -1,7 +1,9 @@
 import json
 import os
 import socket
+
 import tabulate
+
 from vectorcode.cli_utils import Config
 from vectorcode.common import get_client
 

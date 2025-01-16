@@ -1,7 +1,8 @@
 import os
 import shutil
-from vectorcode.cli_utils import GLOBAL_CONFIG_PATH, Config
 import sys
+
+from vectorcode.cli_utils import GLOBAL_CONFIG_PATH, Config
 
 
 def init(configs: Config) -> int:

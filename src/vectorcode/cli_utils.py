@@ -1,6 +1,5 @@
 import argparse
 import glob
-from vectorcode import __version__
 import json
 import os
 import sys
@@ -8,7 +7,10 @@ from dataclasses import dataclass, field, fields
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional, Union
+
 import shtab
+
+from vectorcode import __version__
 
 PathLike = Union[str, Path]
 
