@@ -45,6 +45,7 @@ class Config:
     force: bool = False
     db_path: Optional[str] = None
     chunk_size: int = -1
+    overlap_ratio: float = 0.2
 
     @classmethod
     def import_from(cls, config_dict: dict[str, Any]) -> "Config":
@@ -155,6 +156,9 @@ def cli_arg_parser():
         default=False,
         help="Force to vectorise the file(s) against the gitignore.",
     )
+    vectorise_parser.add_argument(
+        "--overlap", "-o", type=float, help="Ratio of overlaps between chunks."
+    )
 
     query_parser = subparsers.add_parser(
         "query", parents=[shared_parser], help="Send query to retrieve documents."
@@ -187,11 +191,13 @@ def cli_arg_parser():
     number_of_result = 1
     force = False
     chunk_size = -1
+    overlap_ratio = 0.2
     if main_args.action == "vectorise":
         files = main_args.file_paths
         recursive = main_args.recursive
         force = main_args.force
         chunk_size = main_args.chunk_size
+        overlap_ratio = main_args.overlap
     elif main_args.action == "query":
         query = " ".join(main_args.query)
         number_of_result = main_args.number
@@ -206,6 +212,7 @@ def cli_arg_parser():
         pipe=main_args.pipe or shared_args.pipe,
         force=force,
         chunk_size=chunk_size,
+        overlap_ratio=overlap_ratio,
     )
 
 

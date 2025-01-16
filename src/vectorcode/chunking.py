@@ -13,7 +13,7 @@ class ChunkerBase:
 
 
 class StringChunker(ChunkerBase):
-    def __init__(self, chunk_size: int = -1, overlap_ratio: float = 0.5) -> None:
+    def __init__(self, chunk_size: int = -1, overlap_ratio: float = 0.2) -> None:
         super().__init__()
         self.__chunk_size = chunk_size
         assert 0 <= overlap_ratio < 1, (
@@ -35,7 +35,7 @@ class StringChunker(ChunkerBase):
 
 
 class FileChunker(ChunkerBase):
-    def __init__(self, chunk_size: int = -1, overlap_ratio: float = 0.5) -> None:
+    def __init__(self, chunk_size: int = -1, overlap_ratio: float = 0.2) -> None:
         super().__init__()
         self.__chunk_size = chunk_size
         assert 0 <= overlap_ratio < 1, (
