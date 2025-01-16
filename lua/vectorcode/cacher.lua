@@ -48,6 +48,11 @@ local function async_runner(query_message, buf_nr)
         { array = true, object = true }
       )
       if not ok or code ~= 0 then
+        vim.notify(
+          "Retrieval failed:\n" .. table.concat(self:result()),
+          vim.log.levels.WARN,
+          notify_opts
+        )
         return
       end
       vim.schedule(function()
