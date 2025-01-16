@@ -447,7 +447,7 @@ The `drop` command doesn't offer a `--pipe` model output at the moment.
 ## TODOs
 - [ ] query by file path;
 - [ ] chunking support;
-  - [ ] add metadata for files;
+  - [x] add metadata for files;
   - [ ] chunk-size configuration;
 - [x] ~NeoVim Lua API with cache to skip the retrieval when a project has not
   been indexed~ Returns empty array instead;

@@ -1,4 +1,5 @@
 import json
+from chromadb.api.types import IncludeEnum
 import pathspec
 import os
 from vectorcode.cli_utils import Config, expand_globs, expand_path
@@ -20,10 +21,7 @@ def vectorise(configs: Config) -> int:
     else:
         gitignore_spec = None
 
-    stats = {
-        "add": 0,
-        "update": 0,
-    }
+    stats = {"add": 0, "update": 0, "removed": 0}
     for file in tqdm.tqdm(files, total=len(files), disable=configs.pipe):
         if (
             (not configs.force)
@@ -37,22 +35,30 @@ def vectorise(configs: Config) -> int:
 
         if content:
             path_str = str(expand_path(str(file), True))
-            if len(collection.get(ids=[path_str])["ids"]):
-                collection.update(ids=[path_str], documents=[content])
+            if len(collection.get(where={"path": path_str})["ids"]):
+                collection.update(
+                    ids=[path_str], documents=[content], metadatas=[{"path": path_str}]
+                )
                 stats["update"] += 1
             else:
-                collection.add([path_str], documents=[content])
+                collection.add(
+                    [path_str], documents=[content], metadatas=[{"path": path_str}]
+                )
                 stats["add"] += 1
 
-    orphaned = [path for path in collection.get()["ids"] if not os.path.isfile(path)]
-    if orphaned:
-        collection.delete(ids=orphaned)
+    all_results = collection.get(include=[IncludeEnum.metadatas])
+    if all_results is not None and all_results.get("metadatas"):
+        for idx in range(len(all_results["ids"])):
+            path_in_meta = str(all_results["metadatas"][idx].get("path"))
+            if path_in_meta is not None and not os.path.isfile(path_in_meta):
+                collection.delete(where={"path": path_in_meta})
+                stats["removed"] += 1
+
     if configs.pipe:
-        stats["removed"] = len(orphaned)
         print(json.dumps(stats))
     else:
         print(f"Added:\t{stats['add']}")
         print(f"Updated:\t{stats['update']}")
-        if orphaned:
-            print(f"Removed orphanes:\t{len(orphaned)}")
+        if stats["removed"]:
+            print(f"Removed orphanes:\t{stats['removed']}")
     return 0
