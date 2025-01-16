@@ -2,6 +2,7 @@ import concurrent.futures as futures
 import hashlib
 import json
 import os
+import sys
 import uuid
 from threading import Lock
 
@@ -70,12 +71,16 @@ def vectorise(configs: Config) -> int:
     with tqdm.tqdm(
         total=len(files), desc="Vectorising files...", disable=configs.pipe
     ) as bar:
-        with futures.ThreadPoolExecutor(
-            max_workers=max((os.cpu_count() or 1) - 1, 1)
-        ) as executor:
-            jobs = {executor.submit(chunked_add, file): file for file in files}
-            for future in futures.as_completed(jobs):
-                bar.update(1)
+        try:
+            with futures.ThreadPoolExecutor(
+                max_workers=max((os.cpu_count() or 1) - 1, 1)
+            ) as executor:
+                jobs = {executor.submit(chunked_add, file): file for file in files}
+                for future in futures.as_completed(jobs):
+                    bar.update(1)
+        except KeyboardInterrupt:
+            print("Abort.", file=sys.stderr)
+            return 1
 
     all_results = collection.get(include=[IncludeEnum.metadatas])
     if all_results is not None and all_results.get("metadatas"):
