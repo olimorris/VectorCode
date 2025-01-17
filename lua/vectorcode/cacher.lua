@@ -21,19 +21,17 @@ local function async_runner(query_message, buf_nr)
   if not vim.b[buf_nr].vectorcode_cache.enabled then
     return
   end
-  vim.schedule(function()
-    local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
-    vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
-  end)
+  local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
+  vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
   local args = {
     "query",
     "--pipe",
     "-n",
-    tostring(vim.b[buf_nr].vectorcode_cache.options.n_query),
+    tostring(cache.options.n_query),
     query_message,
   }
 
-  if vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache").exclude_this then
+  if cache.exclude_this then
     vim.list_extend(args, { "--exclude", vim.api.nvim_buf_get_name(buf_nr) })
   end
   local job = require("plenary.job"):new({
@@ -82,6 +80,13 @@ local function async_runner(query_message, buf_nr)
     ---@type VectorCodeCache
     local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
     cache.jobs[job.pid] = true
+    if cache.options.notify then
+      vim.notify(
+        ("Caching for buffer %d has started."):format(buf_nr),
+        vim.log.levels.INFO,
+        notify_opts
+      )
+    end
     vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
   end)
 end
