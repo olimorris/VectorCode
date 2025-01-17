@@ -1,7 +1,9 @@
 import json
 from collections import defaultdict
-from typing import DefaultDict
+from enum import Enum
+from typing import Callable, DefaultDict
 
+import numpy
 from chromadb.api.types import IncludeEnum, QueryResult
 from chromadb.errors import InvalidCollectionException, InvalidDimensionException
 
@@ -13,6 +15,13 @@ from vectorcode.common import (
     get_embedding_function,
     verify_ef,
 )
+
+
+class TopKStrategy(Enum):
+    # TODO: make this configurable
+    a_mean: Callable[..., float] = lambda x: float(numpy.mean(x))
+    g_mean: Callable[..., float] = lambda x: float(numpy.exp(numpy.log(x).mean()))
+    min: Callable[..., float] = lambda x: min(x)
 
 
 def top_k_results(results: QueryResult, configs: Config) -> list[str]:
@@ -27,8 +36,12 @@ def top_k_results(results: QueryResult, configs: Config) -> list[str]:
         for distance, path in zip(chunk_distances, paths):
             documents[path].append(distance)
 
+    doc_to_dist_arr = {}
+    for key in documents.keys():
+        doc_to_dist_arr[key] = numpy.array(documents[key])
     doc_list = sorted(
-        documents.keys(), key=lambda x: sum(documents[x]) / len(documents[x])
+        doc_to_dist_arr.keys(),
+        key=lambda x: TopKStrategy.min(doc_to_dist_arr[x]),
     )
     return doc_list[: configs.n_result]
 
