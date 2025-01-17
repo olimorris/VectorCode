@@ -51,13 +51,15 @@ local function async_runner(query_message, buf_nr)
         { array = true, object = true }
       )
       if not ok or code ~= 0 then
-        if vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache").options.notify then
-          vim.notify(
-            "Retrieval failed:\n" .. table.concat(self:result()),
-            vim.log.levels.WARN,
-            notify_opts
-          )
-        end
+        vim.schedule(function()
+          if vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache").options.notify then
+            vim.notify(
+              "Retrieval failed:\n" .. table.concat(self:result()),
+              vim.log.levels.WARN,
+              notify_opts
+            )
+          end
+        end)
         return
       end
       vim.schedule(function()
