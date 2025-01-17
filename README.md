@@ -153,7 +153,8 @@ The following are the available options for the JSON configuration file:
   `OllamaEmbeddingFunction(url="http://127.0.0.1:11434/api/embeddings",
   model_name="nomic-embed-text")`. Default: `{}`;
 - `host` and `port`: Chromadb server host and port. Default: not set, in favour
-  of local persistent client set by `db_path`;
+  of local persistent client set by `db_path`. **Please only use with local or
+  LAN Chromadb server because ChromaDB authentication is still WIP**;
 - `db_path`: Path to local persistent database. **If `host` or `port` is set, this
   will be ignored**. Default: `~/.local/share/vectorcode/chromadb/`;
 - `chunk_size`: integer, the maximum number of characters per chunk. A larger
@@ -489,6 +490,7 @@ The `drop` command doesn't offer a `--pipe` model output at the moment.
   been indexed~ Returns empty array instead;
 - [x] job pool for async caching;
 - [x] [persistent-client](https://docs.trychroma.com/docs/run-chroma/persistent-client);
+- [ ] proper [remote Chromadb](https://docs.trychroma.com/production/administration/auth) support (with authentication, etc.);
 - [x] respect `.gitignore`;
 - [x] implement some sort of project-root anchors (such as `.git` or a custom
   `.vectorcode.json`) that enhances automatic project-root detection.
