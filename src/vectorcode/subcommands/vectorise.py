@@ -7,6 +7,7 @@ import uuid
 from threading import Lock
 
 import pathspec
+import tabulate
 import tqdm
 from chromadb.api.types import IncludeEnum
 
@@ -93,8 +94,13 @@ def vectorise(configs: Config) -> int:
     if configs.pipe:
         print(json.dumps(stats))
     else:
-        print(f"Added:\t{stats['add']}")
-        print(f"Updated:\t{stats['update']}")
-        if stats["removed"]:
-            print(f"Removed orphanes:\t{stats['removed']}")
+        print(
+            tabulate.tabulate(
+                [
+                    ["Added", "Updated", "Removed"],
+                    [stats["add"], stats["update"], stats["removed"]],
+                ],
+                headers="firstrow",
+            )
+        )
     return 0
