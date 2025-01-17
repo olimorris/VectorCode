@@ -18,19 +18,19 @@ neovim plugin because that's what I used to write this tool.
 
 <!-- mtoc-start -->
 
-* [Why VectorCode? ](#why-vectorcode-)
+* [Why VectorCode?](#why-vectorcode)
 * [Prerequisites](#prerequisites)
 * [Installation](#installation)
-  * [NeoVim users: ](#neovim-users-)
+  * [NeoVim users:](#neovim-users)
 * [Configuration](#configuration)
   * [CLI tool](#cli-tool)
-* [Usage ](#usage-)
+* [Usage](#usage)
   * [CLI tool](#cli-tool-1)
-    * [Initialising Project-Local Configuration ](#initialising-project-local-configuration-)
+    * [Initialising Project-Local Configuration](#initialising-project-local-configuration)
     * [Vectorising documents](#vectorising-documents)
     * [Querying from a collection](#querying-from-a-collection)
-    * [Listing all collections ](#listing-all-collections-)
-    * [Removing a collection ](#removing-a-collection-)
+    * [Listing all collections](#listing-all-collections)
+    * [Removing a collection](#removing-a-collection)
     * [Shell Completion](#shell-completion)
   * [NeoVim plugin](#neovim-plugin)
     * [Asynchronous Caching](#asynchronous-caching)
@@ -45,7 +45,7 @@ neovim plugin because that's what I used to write this tool.
 
 <!-- mtoc-end -->
 
-## Why VectorCode? 
+## Why VectorCode?
 LLMs usually have very limited understanding about close-source and/or infamous 
 projects, as well as cutting edge developments that have not made it into the
 releases. Their capabilities on these projects are quite limited. Take my little
@@ -65,12 +65,12 @@ and chat plugin available on VSCode and JetBrain products.
 ## Prerequisites
 
 
-- <del>A working instance of [Chromadb](https://www.trychroma.com/). A local docker
-  image will suffice.</del>
-- <del>An embedding tool supported by [Chromadb](https://www.trychroma.com/), which 
+- ~A working instance of [Chromadb](https://www.trychroma.com/). A local docker
+  image will suffice.~
+- ~An embedding tool supported by [Chromadb](https://www.trychroma.com/), which 
 you can find out more from 
 [here](https://docs.trychroma.com/docs/embeddings/embedding-functions) and 
-[here](https://docs.trychroma.com/integrations/chroma-integrations)</del>
+[here](https://docs.trychroma.com/integrations/chroma-integrations)~
 
 As long as you managed to install `VectorCode` itself, you're good to go!
 
@@ -89,7 +89,7 @@ pipx install vectorcode
 To install the latest commit from GitHub, clone the repo and run `pipx install
 <path_to_repo>`.
 
-### NeoVim users: 
+### NeoVim users:
 
 This repo doubles as a neovim plugin. Use your favourite plugin manager to
 install.
@@ -104,6 +104,7 @@ For `lazy.nvim`:
     notify = true, -- enable notifications
     timeout_ms = 5000, -- timeout in milliseconds for the query operation.
   },
+  cond = function() return vim.fn.executable('vectorcode') == 1 end,
 }
 ```
 
@@ -131,11 +132,12 @@ flag.
     "db_path": "~/.local/share/vectorcode/chromadb/",
 }
 ```
+The following are the available options for the JSON configuration file:
 - `embedding_function`: One of the embedding functions supported by [Chromadb](https://www.trychroma.com/) 
   (find more [here](https://docs.trychroma.com/docs/embeddings/embedding-functions) and 
   [here](https://docs.trychroma.com/integrations/chroma-integrations)). For
   example, Chromadb supports Ollama as `chromadb.utils.embedding_functions.OllamaEmbeddingFunction`,
-  and the corresponding value for `embedding_function` would be `OllamaEmbeddingFunction`.
+  and the corresponding value for `embedding_function` would be `OllamaEmbeddingFunction`. Default: `SentenceTransformerEmbeddingFunction`;
 - `embedding_params`: Whatever initialisation parameters your embedding function
   takes. For `OllamaEmbeddingFunction`, if you set `embedding_params` to:
   ```json
@@ -146,10 +148,24 @@ flag.
   ```
   Then the embedding function object will be initialised as
   `OllamaEmbeddingFunction(url="http://127.0.0.1:11434/api/embeddings",
-  model_name="nomic-embed-text")`.
-- `host` and `port`: Chromadb server host and port;
+  model_name="nomic-embed-text")`. Default: `{}`;
+- `host` and `port`: Chromadb server host and port. Default: not set, in favour
+  of local persistent client set by `db_path`;
 - `db_path`: Path to local persistent database. **If `host` or `port` is set, this
-  will be ignored.**
+  will be ignored**. Default: `~/.local/share/vectorcode/chromadb/`;
+- `chunk_size`: integer, the maximum number of characters per chunk. A larger
+  value reduces the number of items in the database, and hence accelerates the
+  search, but at the cost of potentially truncated data and lost information.
+  Default: `-1` (no chunking);
+- `overlap_ratio`: float between 0 and 1, the ratio of overlapping content in a
+  between 2 adjacent chunks. A larger ratio improves the coherences of chunks,
+  but at the cost of increasing number of entries in the database and hence
+  slowing down the search. Default: `0.2`;
+- `query_multplier`: when you use the `query` command to retrieve `n` documents,
+  VectorCode will check `n * query_multplier` chunks and return at most `n` 
+  documents. A larger value of `query_multplier`
+  guarantees the return of `n` documents, but with the risk of including too
+  many less-relevant chunks that may affect the document selection. Default: `-1` (any negative value means selecting documents based on all indexed chunks).
 
 For the convenience of deployment, environment variables in the
 configuration values will be automatically expanded so that you can override
@@ -165,7 +181,7 @@ pipx inject vectorcode openai
 ```
 And `openai` will be added to the virtual environment of `vectorcode`.
 
-## Usage 
+## Usage
 ### CLI tool
 >This is an incomplete list of command-line options. You can always use
 `vectorcode -h` to view the full list of arguments.
@@ -175,7 +191,7 @@ project. The collections are identified by project root, which, by default, is
 the current working directory. You can override this by using the `--project_root
 <path_to_your_project_root>` argument.
 
-#### Initialising Project-Local Configuration 
+#### Initialising Project-Local Configuration
 
 ```bash
 vectorcode init 
@@ -192,7 +208,7 @@ Running `vectorcode init` command in `foo/` creates the `foo/.vectorcode/`
 directory, which can contain the project-local `config.json`. When 
 `foo/.vectorcode/` is present, `foo/` will be used as the project-root for 
 VectorCode when you run `vectorcode` command from any of the subdirectories of 
-`foo/`, unless overridden by `--project_root`. 
+`foo/` (such as `foo/bar/`), unless overridden by `--project_root`. 
 
 When you run `vectorcode init` and a global configuration file is present, it'll
 be copied to your project-local config directory. **If a project-local
@@ -207,22 +223,29 @@ vectorcode vectorise src/*.py
 in the database will be automatically cleaned. This will respect `.gitignore`
 under project root, unless the `-f`/`--force` flag is set.
 
+Extra options: 
+
+- `--overlap` or `-o`: ratio of overlaps between chunks;
+- `--chunk_size` or `-c`: maximum number of characters per chunk;
+- `--recursive` or `-r`: recursively vectorise files in a directory;
+- `--force` or `-f`: override `.gitignore`.
+
 #### Querying from a collection
 ```bash 
 vectorcode query "some query message"
 ```
-It returns one query result by default. To increase the number of response, use
-`-n`: 
-```bash 
-vectorcode query "some query message" -n 5
-```
 
-#### Listing all collections 
+Extra options:
+- `--overlap` and `--chunk_size`: same as `vectorcode vectorise`;
+- `--number` or `-n`: maximum number of returned documents;
+- `--multiplier` or `-m`: query multiplier. See [CLI tool](#cli-tool-1).
+
+#### Listing all collections
 ```bash 
 vectorcode ls 
 ```
 
-#### Removing a collection 
+#### Removing a collection
 
 ```bash 
 vectorcode drop 
@@ -429,6 +452,8 @@ A JSON array of collection information of the following format will be printed:
     "hostname": str,
     "collection_name": str,
     "size": int,
+    "num_files": int,
+    "embedding_function": str
 }
 ```
 
@@ -440,7 +465,10 @@ A JSON array of collection information of the following format will be printed:
 - `collection_name`: the unique identifier of the collection in the database.
   This is the first 63 characters of the sha256 hash of the absolute path of the
   project root.
-- `size`: number of documents in the collection.
+- `size`: number of chunks in the collection;
+- `num_files`: number of files in the collection;
+- `embedding_function`: name of embedding function used for the collection.
+
 #### `drop`
 The `drop` command doesn't offer a `--pipe` model output at the moment.
 
@@ -450,6 +478,7 @@ The `drop` command doesn't offer a `--pipe` model output at the moment.
   - [x] add metadata for files;
   - [x] chunk-size configuration;
   - [ ] smarter chunking (semantics/syntax based);
+  - [ ] configurable document selection from query results.
 - [x] ~NeoVim Lua API with cache to skip the retrieval when a project has not
   been indexed~ Returns empty array instead;
 - [x] job pool for async caching;
