@@ -103,6 +103,9 @@ For `lazy.nvim`:
     n_query = 1, -- number of retrieved documents
     notify = true, -- enable notifications
     timeout_ms = 5000, -- timeout in milliseconds for the query operation.
+    exclude_this = true, -- exclude the buffer from which the query is called.
+                         -- This avoids repetition when you change some code but
+                         -- the embedding has not been updated.
   },
   cond = function() return vim.fn.executable('vectorcode') == 1 end,
 }
@@ -238,7 +241,8 @@ vectorcode query "some query message"
 Extra options:
 - `--overlap` and `--chunk_size`: same as `vectorcode vectorise`;
 - `--number` or `-n`: maximum number of returned documents;
-- `--multiplier` or `-m`: query multiplier. See [CLI tool](#cli-tool-1).
+- `--multiplier` or `-m`: query multiplier. See [CLI tool](#cli-tool-1);
+- `--exclude`: files from which the query results should be ignored.
 
 #### Listing all collections
 ```bash 

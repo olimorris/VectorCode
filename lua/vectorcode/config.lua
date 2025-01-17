@@ -2,7 +2,13 @@
 ---@field n_query integer?
 ---@field notify boolean?
 ---@field timeout_ms number?
-local config = { n_query = 1, notify = true, timeout_ms = 5000 }
+---@field exclude_this boolean?
+local config = {
+  n_query = 1,
+  notify = true,
+  timeout_ms = 5000,
+  exclude_this = true,
+}
 
 local setup_config = vim.deepcopy(config, true)
 return {

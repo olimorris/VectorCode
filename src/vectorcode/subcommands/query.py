@@ -1,4 +1,5 @@
 import json
+import os
 from collections import defaultdict
 from enum import Enum
 from typing import Callable, DefaultDict
@@ -8,7 +9,7 @@ from chromadb.api.types import IncludeEnum, QueryResult
 from chromadb.errors import InvalidCollectionException, InvalidDimensionException
 
 from vectorcode.chunking import StringChunker
-from vectorcode.cli_utils import Config
+from vectorcode.cli_utils import Config, expand_globs, expand_path
 from vectorcode.common import (
     get_client,
     get_collection_name,
@@ -70,14 +71,24 @@ def query(configs: Config) -> int:
             configs.query or ""
         )
     )
+    configs.query_exclude = [
+        expand_path(i, True)
+        for i in expand_globs(configs.query_exclude)
+        if os.path.isfile(i)
+    ]
     try:
         num_query = collection.count()
         if configs.query_multiplier > 0:
             num_query = configs.n_result * configs.query_multiplier
+        if len(configs.query_exclude):
+            filtered_files = {"path": {"$nin": configs.query_exclude}}
+        else:
+            filtered_files = None
         results = collection.query(
             query_texts=query_chunks,
             n_results=num_query,
             include=[IncludeEnum.metadatas, IncludeEnum.distances],
+            where=filtered_files,
         )
     except IndexError:
         # no results found

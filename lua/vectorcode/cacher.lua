@@ -25,15 +25,20 @@ local function async_runner(query_message, buf_nr)
     local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
     vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
   end)
+  local args = {
+    "query",
+    "--pipe",
+    "-n",
+    tostring(vim.b[buf_nr].vectorcode_cache.options.n_query),
+    query_message,
+  }
+
+  if vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache").exclude_this then
+    vim.list_extend(args, { "--exclude", vim.api.nvim_buf_get_name(buf_nr) })
+  end
   local job = require("plenary.job"):new({
     command = "vectorcode",
-    args = {
-      "query",
-      "--pipe",
-      "-n",
-      tostring(vim.b[buf_nr].vectorcode_cache.options.n_query),
-      query_message,
-    },
+    args = args,
     on_start = function() end,
     on_exit = function(self, code, signal)
       vim.schedule(function()
@@ -48,11 +53,13 @@ local function async_runner(query_message, buf_nr)
         { array = true, object = true }
       )
       if not ok or code ~= 0 then
-        vim.notify(
-          "Retrieval failed:\n" .. table.concat(self:result()),
-          vim.log.levels.WARN,
-          notify_opts
-        )
+        if vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache").options.notify then
+          vim.notify(
+            "Retrieval failed:\n" .. table.concat(self:result()),
+            vim.log.levels.WARN,
+            notify_opts
+          )
+        end
         return
       end
       vim.schedule(function()

@@ -47,6 +47,7 @@ class Config:
     chunk_size: int = -1
     overlap_ratio: float = 0.2
     query_multiplier: int = -1
+    query_exclude: list[PathLike] = field(default_factory=list)
 
     @classmethod
     def import_from(cls, config_dict: dict[str, Any]) -> "Config":
@@ -172,6 +173,9 @@ def cli_arg_parser():
     query_parser.add_argument(
         "-n", "--number", type=int, default=1, help="Number of results to retrieve."
     )
+    query_parser.add_argument(
+        "--exclude", nargs="*", help="Files to exclude from query results."
+    )
 
     subparsers.add_parser("drop", parents=[shared_parser], help="Remove a collection.")
 
@@ -197,6 +201,7 @@ def cli_arg_parser():
     chunk_size = -1
     overlap_ratio = 0.2
     query_multiplier = -1
+    query_exclude = []
     if main_args.action == "vectorise":
         files = main_args.file_paths
         recursive = main_args.recursive
@@ -207,6 +212,7 @@ def cli_arg_parser():
         query = " ".join(main_args.query)
         number_of_result = main_args.number
         query_multiplier = main_args.multiplier
+        query_exclude = main_args.exclude
     return Config(
         action=CliAction(main_args.action),
         files=files,
@@ -219,6 +225,7 @@ def cli_arg_parser():
         chunk_size=chunk_size,
         overlap_ratio=overlap_ratio,
         query_multiplier=query_multiplier,
+        query_exclude=query_exclude,
     )
 
 
