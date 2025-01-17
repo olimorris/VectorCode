@@ -13,8 +13,8 @@ neovim plugin because that's what I used to write this tool.
 > [!NOTE]
 > [Chromadb](https://www.trychroma.com/), the vector database backend behind
 > this project, supports multiple embedding engines. I developed this tool using
-> Ollama but if you encounter any issues with a different embedding function,
-> please open an issue (or even better, a pull request :D).
+> SentenceTransformer, but if you encounter any issues with a different embedding 
+> function, please open an issue (or even better, a pull request :D).
 
 <!-- mtoc-start -->
 
@@ -159,7 +159,8 @@ The following are the available options for the JSON configuration file:
 - `chunk_size`: integer, the maximum number of characters per chunk. A larger
   value reduces the number of items in the database, and hence accelerates the
   search, but at the cost of potentially truncated data and lost information.
-  Default: `-1` (no chunking);
+  Default: `-1` (no chunking), but it's **highly** recommended to set it to a
+  positive integer that works for your model when working with large documents;
 - `overlap_ratio`: float between 0 and 1, the ratio of overlapping content in a
   between 2 adjacent chunks. A larger ratio improves the coherences of chunks,
   but at the cost of increasing number of entries in the database and hence
@@ -168,7 +169,8 @@ The following are the available options for the JSON configuration file:
   VectorCode will check `n * query_multplier` chunks and return at most `n` 
   documents. A larger value of `query_multplier`
   guarantees the return of `n` documents, but with the risk of including too
-  many less-relevant chunks that may affect the document selection. Default: `-1` (any negative value means selecting documents based on all indexed chunks).
+  many less-relevant chunks that may affect the document selection. Default: 
+  `-1` (any negative value means selecting documents based on all indexed chunks).
 
 For the convenience of deployment, environment variables in the
 configuration values will be automatically expanded so that you can override
@@ -477,7 +479,7 @@ A JSON array of collection information of the following format will be printed:
 The `drop` command doesn't offer a `--pipe` model output at the moment.
 
 ## TODOs
-- [ ] query by file path;
+- [x] query by ~file path~ excluded paths;
 - [ ] chunking support;
   - [x] add metadata for files;
   - [x] chunk-size configuration;
