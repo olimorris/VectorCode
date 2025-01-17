@@ -39,11 +39,11 @@ class Config:
     query: Optional[str] = None
     host: Optional[str] = None
     port: Optional[int] = None
-    embedding_function: str = ""  # This should fallback to whatever the default is.
+    embedding_function: str = "SentenceTransformerEmbeddingFunction"  # This should fallback to whatever the default is.
     embedding_params: dict[str, Any] = field(default_factory=(lambda: {}))
     n_result: int = 1
     force: bool = False
-    db_path: Optional[str] = None
+    db_path: Optional[str] = "~/.local/share/vectorcode/chromadb/"
     chunk_size: int = -1
     overlap_ratio: float = 0.2
     query_multiplier: int = -1
