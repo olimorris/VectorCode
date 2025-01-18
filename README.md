@@ -370,7 +370,11 @@ To use the per-buffer async cache, you need to use the following API:
     customise the message sent to the `vectorcode` CLI. This defaults to the
     whole buffer (for now);
   - `events` (optional): `string[]`, an array of `autocmd` events on which 
-    the queries will be initialised. This defaults to `{ "BufWritePost", "InsertEnter", "BufReadPost" }`.
+    the queries will be initialised. This defaults to 
+    `{ "BufWritePost", "InsertEnter", "BufReadPost" }`;
+  - `debounce` (optional): `int` (default to 10), the minimum amount of time
+    between 2 asynchronous queries. Setting this option avoids excessive calls
+    to the vector database, hence reduces resource usage.
 
   Calling this function on a buffer that has been registered will update its
   `opts` and `query_cb`.

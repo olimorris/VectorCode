@@ -6,8 +6,9 @@ local notify_opts = vc_config.notify_opts
 ---@field enabled boolean
 ---@field retrieval VectorCodeResult[]?
 ---@field options VectorCodeConfig
----@field query_cb (fun(buf_number: integer): string)?
+---@field query_cb fun(buf_number: integer): string
 ---@field jobs table<integer, boolean>
+---@field last_run integer?
 local default_vectorcode_cache = {
   enabled = true,
   retrieval = {},
@@ -89,6 +90,7 @@ local function async_runner(query_message, buf_nr)
         notify_opts
       )
     end
+    cache.last_run = vim.uv.clock_gettime("realtime").sec
     vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
   end)
 end
@@ -97,7 +99,9 @@ end
 ---@param opts VectorCodeConfig?
 ---@param query_cb (fun(buf_number: integer): string)?
 ---@param events string[]?
-function M.register_buffer(bufnr, opts, query_cb, events)
+---@param debounce integer?
+function M.register_buffer(bufnr, opts, query_cb, events, debounce)
+  debounce = debounce or 10
   if bufnr == 0 or bufnr == nil then
     bufnr = vim.api.nvim_get_current_buf()
   end
@@ -141,8 +145,14 @@ function M.register_buffer(bufnr, opts, query_cb, events)
           "buffer vectorcode cache not registered"
         )
         vim.schedule(function()
-          local cb = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache").query_cb
-          async_runner(cb(bufnr), bufnr)
+          local cache = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache") ---@cast cache VectorCodeCache
+          if
+            cache.last_run == nil
+            or (vim.uv.clock_gettime("realtime").sec - cache.last_run) > debounce
+          then
+            local cb = cache.query_cb
+            async_runner(cb(bufnr), bufnr)
+          end
         end)
       end,
       buffer = bufnr,
