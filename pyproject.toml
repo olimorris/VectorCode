@@ -12,7 +12,7 @@ dependencies = [
     "shtab>=1.7.1",
     "numpy>=2.2.1",
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.11,<3.13"
 readme = "README.md"
 license = { text = "MIT" }
 
