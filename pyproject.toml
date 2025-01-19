@@ -16,6 +16,9 @@ requires-python = ">=3.11,<3.13"
 readme = "README.md"
 license = { text = "MIT" }
 
+[project.optional-dependencies]
+intel = ['optimum[openvino]']
+
 [project.scripts]
 vectorcode = 'vectorcode.main:main'
 
