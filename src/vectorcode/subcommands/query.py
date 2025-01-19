@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from collections import defaultdict
 from enum import Enum
 from typing import Callable, DefaultDict
@@ -97,9 +98,15 @@ def query(configs: Config) -> int:
     structured_result = []
     aggregated_results = top_k_results(results, configs)
     for path in aggregated_results:
-        with open(path) as fin:
-            document = fin.read()
-        structured_result.append({"path": path, "document": document})
+        try:
+            with open(path) as fin:
+                document = fin.read()
+            structured_result.append({"path": path, "document": document})
+        except FileNotFoundError:
+            print(
+                f"{path} is no longer a valid file! Please re-run vectorcode vectorise to refresh the database.",
+                file=sys.stderr,
+            )
 
     if configs.pipe:
         print(json.dumps(structured_result))
