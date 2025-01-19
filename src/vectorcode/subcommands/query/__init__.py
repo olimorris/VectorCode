@@ -14,8 +14,6 @@ from vectorcode.common import (
     verify_ef,
 )
 
-from .reranker import ArithmeticMeanReranker
-
 
 def query(configs: Config) -> int:
     client = get_client(configs)
@@ -69,10 +67,17 @@ def query(configs: Config) -> int:
         return 0
 
     structured_result = []
-    # FlagEmbeddingReranker(
-    #     configs, query_chunks, "BAAI/bge-reranker-v2-m3", use_fp16=True
-    # ).rerank(results)
-    aggregated_results = ArithmeticMeanReranker(configs).rerank(results)
+    if configs.reranker is None:
+        from .reranker import NaiveReranker
+
+        aggregated_results = NaiveReranker(configs).rerank(results)
+    else:
+        from .reranker import FlagEmbeddingReranker
+
+        aggregated_results = FlagEmbeddingReranker(
+            configs, query_chunks, configs.reranker
+        ).rerank(results)
+
     for path in aggregated_results:
         try:
             with open(path) as fin:
