@@ -2,6 +2,7 @@ import json
 import os
 import sys
 
+import sys
 from chromadb.api.types import IncludeEnum
 from chromadb.errors import InvalidCollectionException, InvalidDimensionException
 
