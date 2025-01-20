@@ -45,6 +45,7 @@ class Config:
     n_result: int = 1
     force: bool = False
     db_path: Optional[str] = "~/.local/share/vectorcode/chromadb/"
+    db_settings: Optional[dict] = None
     chunk_size: int = -1
     overlap_ratio: float = 0.2
     query_multiplier: int = -1
@@ -83,6 +84,7 @@ class Config:
                 "overlap_ratio": config_dict.get("overlap_ratio", 0.2),
                 "query_multiplier": config_dict.get("query_multiplier", -1),
                 "reranker": config_dict.get("reranker", None),
+                "db_settings": config_dict.get("db_settings", None),
             }
         )
 

@@ -6,6 +6,7 @@ from typing import Optional
 
 import chromadb
 from chromadb.api import ClientAPI
+from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
 from vectorcode.cli_utils import Config, expand_path
@@ -16,8 +17,14 @@ def get_client(configs: Config) -> ClientAPI:
         if configs.db_path is not None:
             os.makedirs(configs.db_path, exist_ok=True)
             return chromadb.PersistentClient(configs.db_path)
+        if configs.db_settings is not None:
+            setting = Settings(**configs.db_settings)
+        else:
+            setting = None
         return chromadb.HttpClient(
-            host=configs.host or "localhost", port=configs.port or 8000
+            host=configs.host or "localhost",
+            port=configs.port or 8000,
+            settings=setting,
         )
     except ValueError:
         print(
