@@ -177,7 +177,10 @@ The following are the available options for the JSON configuration file:
 - `reranker`: `str`, experimental reranking support using 
   [`FlagEmbedding`](https://github.com/FlagOpen/FlagEmbedding) (_This is still
   experimental and slows down the query even if it works. Use at your own risk,
-  and open an issue if things go wrong)_.
+  and open an issue if things go wrong)_;
+- `db_settings`: similar format to `embedding_params`, but for Chromadb client
+  settings so that you can configure 
+  [authentication for remote chromadb](https://docs.trychroma.com/production/administration/auth).
 
 For the convenience of deployment, environment variables in the
 configuration values will be automatically expanded so that you can override
