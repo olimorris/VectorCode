@@ -213,4 +213,20 @@ function M.lualine()
     end,
   }
 end
+
+---@param check_item string?
+---@param on_success fun()?
+---@param on_failure fun()?
+function M.async_check(check_item, on_success, on_failure)
+  check_item = check_item or "config"
+  local return_code
+  vim.system({ "vectorcode", "check", check_item }, {}, function(out)
+    if out.code == 0 and type(on_success) == "function" then
+      on_success()
+    elseif out.code ~= 0 and type(on_failure) == "function" then
+      on_failure()
+    end
+  end)
+  return return_code == 0
+end
 return M
