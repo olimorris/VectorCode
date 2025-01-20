@@ -5,7 +5,6 @@ from typing import Any, DefaultDict
 
 import numpy
 from chromadb.api.types import QueryResult
-from numpy.typing import NDArray
 
 from vectorcode.cli_utils import Config
 
