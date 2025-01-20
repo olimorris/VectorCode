@@ -50,7 +50,9 @@ def start_server(configs: Config):
     assert configs.db_path is not None
     process = subprocess.Popen(
         [
-            "chroma",
+            sys.executable,
+            "-m",
+            "chromadb.cli.cli",
             "run",
             "--host",
             configs.host,
@@ -62,7 +64,7 @@ def start_server(configs: Config):
             os.path.join(configs.project_root, "chroma.log"),
         ],
         stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
+        stderr=sys.stderr,
         preexec_fn=os.setsid,
     )
     asyncio.run(wait_for_server(configs.host, configs.port))
