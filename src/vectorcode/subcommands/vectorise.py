@@ -46,6 +46,7 @@ async def vectorise(
     stats = {"add": 0, "update": 0, "removed": 0}
     collection_lock = Lock()
     stats_lock = Lock()
+    max_batch_size = await client.get_max_batch_size()
 
     async def chunked_add(file_path: str):
         if (
@@ -79,11 +80,13 @@ async def vectorise(
                 FileChunker(configs.chunk_size, configs.overlap_ratio).chunk(fin)
             )
             async with collection_lock:
-                await collection.add(
-                    ids=[get_uuid() for _ in range(len(chunks))],
-                    documents=chunks,
-                    metadatas=[{"path": full_path_str} for _ in chunks],
-                )
+                for idx in range(0, len(chunks), max_batch_size):
+                    inserted_chunks = chunks[idx : idx + max_batch_size]
+                    await collection.add(
+                        ids=[get_uuid() for _ in inserted_chunks],
+                        documents=inserted_chunks,
+                        metadatas=[{"path": full_path_str} for _ in inserted_chunks],
+                    )
 
     with tqdm.tqdm(
         total=len(files), desc="Vectorising files...", disable=configs.pipe
