@@ -26,6 +26,7 @@ class CliAction(Enum):
     ls = "ls"
     init = "init"
     version = "version"
+    check = "check"
 
 
 @dataclass
@@ -49,6 +50,7 @@ class Config:
     query_multiplier: int = -1
     query_exclude: list[PathLike] = field(default_factory=list)
     reranker: Optional[str] = None
+    check_item: Optional[str] = None
 
     @classmethod
     def import_from(cls, config_dict: dict[str, Any]) -> "Config":
@@ -190,6 +192,12 @@ def cli_arg_parser():
     subparsers.add_parser(
         "version", parents=[shared_parser], help="Print the version number."
     )
+    check_parser = subparsers.add_parser(
+        "check", parents=[shared_parser], help="Check for project-local setup."
+    )
+    check_parser.add_argument(
+        "check_item", type=str, help="Item to be checked. Valid values: [config]"
+    )
 
     main_args = main_parser.parse_args()
     if main_args.action is None:
@@ -204,17 +212,21 @@ def cli_arg_parser():
     overlap_ratio = 0.2
     query_multiplier = -1
     query_exclude = []
-    if main_args.action == "vectorise":
-        files = main_args.file_paths
-        recursive = main_args.recursive
-        force = main_args.force
-        chunk_size = main_args.chunk_size
-        overlap_ratio = main_args.overlap
-    elif main_args.action == "query":
-        query = " ".join(main_args.query)
-        number_of_result = main_args.number
-        query_multiplier = main_args.multiplier
-        query_exclude = main_args.exclude
+    check_item = None
+    match main_args.action:
+        case "vectorise":
+            files = main_args.file_paths
+            recursive = main_args.recursive
+            force = main_args.force
+            chunk_size = main_args.chunk_size
+            overlap_ratio = main_args.overlap
+        case "query":
+            query = " ".join(main_args.query)
+            number_of_result = main_args.number
+            query_multiplier = main_args.multiplier
+            query_exclude = main_args.exclude
+        case "check":
+            check_item = main_args.check_item
     return Config(
         action=CliAction(main_args.action),
         files=files,
@@ -228,6 +240,7 @@ def cli_arg_parser():
         overlap_ratio=overlap_ratio,
         query_multiplier=query_multiplier,
         query_exclude=query_exclude,
+        check_item=check_item,
     )
 
 

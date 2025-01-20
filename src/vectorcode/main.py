@@ -8,11 +8,14 @@ from vectorcode.cli_utils import (
     find_project_config_dir,
     load_config_file,
 )
-from vectorcode.subcommands import drop, init, ls, query, vectorise
+from vectorcode.subcommands import check, drop, init, ls, query, vectorise
 
 
 def main():
     cli_args = cli_arg_parser()
+    if cli_args.action == CliAction.check:
+        # NOTE: `check` is designed to be faster than the other actions.
+        return check(cli_args)
     project_config_dir = find_project_config_dir(cli_args.project_root)
 
     if project_config_dir is not None:

@@ -37,10 +37,12 @@ neovim plugin because that's what I used to write this tool.
     * [Lualine Integration](#lualine-integration)
     * [The Boring Stuff](#the-boring-stuff)
   * [For Developers](#for-developers)
-    * [`vectorise`](#vectorise)
-    * [`query`](#query)
-    * [`ls`](#ls)
-    * [`drop`](#drop)
+    * [Checking for Local Config](#checking-for-local-config)
+    * [Parsing VectorCode `STDOUT` outputs](#parsing-vectorcode-stdout-outputs)
+      * [`vectorise`](#vectorise)
+      * [`query`](#query)
+      * [`ls`](#ls)
+      * [`drop`](#drop)
 * [TODOs](#todos)
 
 <!-- mtoc-end -->
@@ -431,10 +433,18 @@ definition:
 ```
 ### For Developers
 
+#### Checking for Local Config
+VectorCode provides a subcommand `vectorcode check` that will check for
+project-local setup. The only available check right now is `vectorcode check
+config` which returns `1` if a project-local config cannot be found. This runs
+faster than any other commands, and can be used as a sanity check before
+vectorise/query are run (both of them are much slower).
+
+#### Parsing VectorCode `STDOUT` outputs
 When the `--pipe` flag is set, the output of the CLI tool will be structured
 into some sort of JSON string.
 
-#### `vectorise`
+##### `vectorise`
 The number of added, updated and removed entries will be printed.
 ```json
 {
@@ -448,7 +458,7 @@ The number of added, updated and removed entries will be printed.
 - `removed`: number of removed documents due to original documents being
   deleted.
 
-#### `query`
+##### `query`
 A JSON array of query results of the following format will be printed:
 ```json
 {
@@ -460,7 +470,7 @@ A JSON array of query results of the following format will be printed:
 - `path`: path to the file;
 - `document`: content of the file.
 
-#### `ls`
+##### `ls`
 A JSON array of collection information of the following format will be printed:
 ```json 
 {
@@ -486,7 +496,7 @@ A JSON array of collection information of the following format will be printed:
 - `num_files`: number of files in the collection;
 - `embedding_function`: name of embedding function used for the collection.
 
-#### `drop`
+##### `drop`
 The `drop` command doesn't offer a `--pipe` model output at the moment.
 
 ## TODOs

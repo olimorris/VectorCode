@@ -100,5 +100,18 @@ M.vectorise = function(files, project_root)
     :start()
 end
 
+---@param check_item string?
+---@return boolean
+function M.check(check_item)
+  check_item = check_item or "config"
+  local return_code
+  vim
+    .system({ "vectorcode", "check", check_item }, {}, function(out)
+      return_code = out.code
+    end)
+    :wait()
+  return return_code == 0
+end
+
 M.setup = require("vectorcode.config").setup
 return M
