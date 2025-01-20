@@ -43,7 +43,6 @@ end
 ---@param num_of_lines integer
 ---@return VectorCodeQueryCallback
 function M.surrounding_lines_cb(num_of_lines)
-  assert(num_of_lines > 0)
   return function(bufnr)
     if bufnr == 0 or bufnr == nil then
       bufnr = vim.api.nvim_get_current_buf()
