@@ -6,6 +6,7 @@ import os
 import sys
 import uuid
 from threading import Lock
+from typing import Any, Coroutine
 
 import pathspec
 import tabulate
@@ -27,7 +28,10 @@ def get_uuid() -> str:
     return uuid.uuid4().hex
 
 
-async def vectorise(configs: Config, client: AsyncClientAPI) -> int:
+async def vectorise(
+    configs: Config, client_co: Coroutine[Any, Any, AsyncClientAPI]
+) -> int:
+    client = await client_co
     collection = await make_or_get_collection(client, configs)
     if not verify_ef(collection, configs):
         return 1

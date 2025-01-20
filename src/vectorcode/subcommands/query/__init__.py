@@ -1,6 +1,7 @@
 import json
 import os
 import sys
+from typing import Any, Coroutine
 
 from chromadb.api import AsyncClientAPI
 from chromadb.api.types import IncludeEnum
@@ -15,7 +16,8 @@ from vectorcode.common import (
 )
 
 
-async def query(configs: Config, client: AsyncClientAPI) -> int:
+async def query(configs: Config, client_co: Coroutine[Any, Any, AsyncClientAPI]) -> int:
+    client = await client_co
     try:
         collection = await client.get_collection(
             name=get_collection_name(str(configs.project_root)),

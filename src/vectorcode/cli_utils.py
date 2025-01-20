@@ -38,8 +38,8 @@ class Config:
     files: list[PathLike] = field(default_factory=list)
     project_root: PathLike = Path(".")
     query: Optional[str] = None
-    host: Optional[str] = None
-    port: Optional[int] = None
+    host: str = "127.0.0.1"
+    port: int = 8000
     embedding_function: str = "SentenceTransformerEmbeddingFunction"  # This should fallback to whatever the default is.
     embedding_params: dict[str, Any] = field(default_factory=(lambda: {}))
     n_result: int = 1

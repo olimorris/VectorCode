@@ -1,6 +1,7 @@
 import json
 import os
 import socket
+from typing import Any, Coroutine
 
 import tabulate
 from chromadb.api import AsyncClientAPI
@@ -9,7 +10,8 @@ from chromadb.api.types import IncludeEnum
 from vectorcode.cli_utils import Config
 
 
-async def ls(configs: Config, client: AsyncClientAPI) -> int:
+async def ls(configs: Config, client_co: Coroutine[Any, Any, AsyncClientAPI]) -> int:
+    client = await client_co
     result: list[dict] = []
     collections = await client.list_collections()
     for collection_name in collections:

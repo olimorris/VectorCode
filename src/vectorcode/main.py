@@ -2,9 +2,8 @@ import asyncio
 import logging
 import os
 import signal
-from typing import Optional
+from typing import Any, Coroutine
 
-import httpx
 from chromadb.api import AsyncClientAPI
 
 from vectorcode import __version__
@@ -14,7 +13,7 @@ from vectorcode.cli_utils import (
     find_project_config_dir,
     load_config_file,
 )
-from vectorcode.common import get_client, start_server
+from vectorcode.common import get_client, start_server, try_server
 from vectorcode.subcommands import check, drop, init, ls, query, vectorise
 
 
@@ -35,14 +34,10 @@ def main():
         final_configs = load_config_file().merge_from(cli_args)
 
     server_process = None
-    client: Optional[AsyncClientAPI] = None
-    try:
-        client = asyncio.run(get_client(final_configs))
-    except httpx.ConnectError:
+    if not try_server(final_configs.host, final_configs.port):
         server_process = start_server(final_configs)
 
-    if client is None:
-        client = asyncio.run(get_client(final_configs))
+    client_co: Coroutine[Any, Any, AsyncClientAPI] = get_client(final_configs)
 
     if final_configs.pipe:
         # NOTE: NNCF (intel GPU acceleration for sentence transformer) keeps showing logs.
@@ -53,13 +48,13 @@ def main():
     try:
         match final_configs.action:
             case CliAction.query:
-                return_val = asyncio.run(query(final_configs, client))
+                return_val = asyncio.run(query(final_configs, client_co))
             case CliAction.vectorise:
-                return_val = asyncio.run(vectorise(final_configs, client))
+                return_val = asyncio.run(vectorise(final_configs, client_co))
             case CliAction.drop:
-                return_val = asyncio.run(drop(final_configs, client))
+                return_val = asyncio.run(drop(final_configs, client_co))
             case CliAction.ls:
-                return_val = asyncio.run(ls(final_configs, client))
+                return_val = asyncio.run(ls(final_configs, client_co))
             case CliAction.init:
                 return_val = asyncio.run(init(final_configs))
             case CliAction.version:

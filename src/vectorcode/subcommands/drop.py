@@ -1,3 +1,5 @@
+from typing import Any, Coroutine
+
 from chromadb.api import AsyncClientAPI
 from chromadb.errors import InvalidCollectionException
 
@@ -5,7 +7,8 @@ from vectorcode.cli_utils import Config
 from vectorcode.common import get_collection_name
 
 
-async def drop(config: Config, client: AsyncClientAPI) -> int:
+async def drop(config: Config, client_co: Coroutine[Any, Any, AsyncClientAPI]) -> int:
+    client = await client_co
     try:
         collection = await client.get_collection(
             name=get_collection_name(str(config.project_root))

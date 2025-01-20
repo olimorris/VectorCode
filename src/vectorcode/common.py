@@ -8,11 +8,21 @@ from typing import Any, Coroutine, Optional
 
 import aiohttp
 import chromadb
+import httpx
 from chromadb.api import AsyncClientAPI
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
 from vectorcode.cli_utils import Config, expand_path
+
+
+def try_server(host: str, port: int):
+    url = f"http://{host}:{port}/api/v1/heartbeat"
+    try:
+        with httpx.Client() as client:
+            return client.get(url=url).status_code == 200
+    except (httpx.ConnectError, httpx.ConnectTimeout):
+        return False
 
 
 async def wait_for_server(host, port, timeout=10):
