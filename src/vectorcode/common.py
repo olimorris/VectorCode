@@ -1,27 +1,74 @@
+import asyncio
 import hashlib
 import os
 import socket
+import subprocess
 import sys
-from typing import Optional
+from typing import Any, Coroutine, Optional
 
+import aiohttp
 import chromadb
-from chromadb.api import ClientAPI
+from chromadb.api import AsyncClientAPI
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
 from vectorcode.cli_utils import Config, expand_path
 
 
-def get_client(configs: Config) -> ClientAPI:
+async def wait_for_server(host, port, timeout=10):
+    # Poll the server until it's ready or timeout is reached
+    url = f"http://{host}:{port}/api/v1/heartbeat"
+    start_time = asyncio.get_event_loop().time()
+    async with aiohttp.ClientSession() as session:
+        while True:
+            try:
+                async with session.get(url) as response:
+                    if response.status == 200:
+                        return
+            except aiohttp.ClientConnectionError:
+                pass  # Server is not yet ready
+
+            if asyncio.get_event_loop().time() - start_time > timeout:
+                raise TimeoutError(f"Server did not start within {timeout} seconds.")
+
+            await asyncio.sleep(0.1)  # Wait before retrying
+
+
+def start_server(configs: Config):
+    assert configs.host is not None
+    assert configs.port is not None
+    assert configs.db_path is not None
+    process = subprocess.Popen(
+        [
+            "chroma",
+            "run",
+            "--host",
+            configs.host,
+            "--port",
+            str(configs.port),
+            "--path",
+            str(configs.db_path),
+            "--log-path",
+            os.path.join(configs.project_root, "chroma.log"),
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        preexec_fn=os.setsid,
+    )
+    asyncio.run(wait_for_server(configs.host, configs.port))
+    return process
+
+
+def get_client(configs: Config) -> Coroutine[Any, Any, AsyncClientAPI]:
+    assert configs.host is not None
+    assert configs.port is not None
+    assert configs.db_path is not None
     try:
-        if configs.db_path is not None:
-            os.makedirs(configs.db_path, exist_ok=True)
-            return chromadb.PersistentClient(configs.db_path)
         if configs.db_settings is not None:
             setting = Settings(**configs.db_settings)
         else:
             setting = None
-        return chromadb.HttpClient(
+        return chromadb.AsyncHttpClient(
             host=configs.host or "localhost",
             port=configs.port or 8000,
             settings=setting,
@@ -54,9 +101,9 @@ def get_embedding_function(configs: Config) -> Optional[chromadb.EmbeddingFuncti
         return embedding_functions.SentenceTransformerEmbeddingFunction()
 
 
-def make_or_get_collection(client: ClientAPI, configs: Config):
+async def make_or_get_collection(client: AsyncClientAPI, configs: Config):
     full_path = str(expand_path(configs.project_root, absolute=True))
-    collection = client.get_or_create_collection(
+    collection = await client.get_or_create_collection(
         get_collection_name(full_path),
         metadata={
             "path": full_path,

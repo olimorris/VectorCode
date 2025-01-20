@@ -1,17 +1,17 @@
+from chromadb.api import AsyncClientAPI
 from chromadb.errors import InvalidCollectionException
 
 from vectorcode.cli_utils import Config
-from vectorcode.common import get_client, get_collection_name
+from vectorcode.common import get_collection_name
 
 
-def drop(config: Config) -> int:
-    client = get_client(configs=config)
+async def drop(config: Config, client: AsyncClientAPI) -> int:
     try:
-        collection = client.get_collection(
+        collection = await client.get_collection(
             name=get_collection_name(str(config.project_root))
         )
         collection_path = collection.metadata["path"]
-        client.delete_collection(collection.name)
+        await client.delete_collection(collection.name)
         print(f"Collection for {collection_path} has been deleted.")
         return 0
     except (ValueError, InvalidCollectionException):

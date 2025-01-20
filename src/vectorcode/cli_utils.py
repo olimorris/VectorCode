@@ -56,21 +56,21 @@ class Config:
     @classmethod
     def import_from(cls, config_dict: dict[str, Any]) -> "Config":
         db_path = config_dict.get("db_path")
-        if config_dict.get("host") is None and config_dict.get("port") is None:
-            host = None
-            port = None
-            db_path = db_path or os.path.expanduser(
-                "~/.local/share/vectorcode/chromadb/"
-            )
-        else:
-            host = config_dict.get("host") or "localhost"
-            port = config_dict.get("port") or 8000
-            if db_path is not None:
+        host = config_dict.get("host") or "localhost"
+        port = config_dict.get("port") or 8000
+        if db_path is None:
+            db_path = os.path.expanduser("~/.local/share/vectorcode/chromadb/")
+            if not os.path.isdir(db_path):
                 print(
-                    f"db_path ({db_path}) and remote database access point ({host}:{port}) are both detected from the same config. Ignoring db_path.",
+                    f"Creating database at {os.path.expanduser('~/.local/share/vectorcode/chromadb/')}.",
                     file=sys.stderr,
                 )
-            db_path = None
+        elif not os.path.isdir(db_path):
+            print(
+                f"{str(db_path)} is not a valid directory!",
+                file=sys.stderr,
+            )
+            sys.exit(1)
         return Config(
             **{
                 "embedding_function": config_dict.get(

@@ -1,3 +1,4 @@
+import asyncio
 import concurrent.futures as futures
 import hashlib
 import json
@@ -9,11 +10,12 @@ from threading import Lock
 import pathspec
 import tabulate
 import tqdm
+from chromadb.api import AsyncClientAPI
 from chromadb.api.types import IncludeEnum
 
 from vectorcode.chunking import FileChunker
 from vectorcode.cli_utils import Config, expand_globs, expand_path
-from vectorcode.common import get_client, make_or_get_collection, verify_ef
+from vectorcode.common import make_or_get_collection, verify_ef
 
 
 def hash_str(string: str) -> str:
@@ -25,9 +27,8 @@ def get_uuid() -> str:
     return uuid.uuid4().hex
 
 
-def vectorise(configs: Config) -> int:
-    client = get_client(configs)
-    collection = make_or_get_collection(client, configs)
+async def vectorise(configs: Config, client: AsyncClientAPI) -> int:
+    collection = await make_or_get_collection(client, configs)
     if not verify_ef(collection, configs):
         return 1
     files = expand_globs(configs.files or [], recursive=configs.recursive)
@@ -55,13 +56,16 @@ def vectorise(configs: Config) -> int:
         full_path_str = str(expand_path(str(file_path), True))
         with collection_lock:
             num_existing_chunks = len(
-                collection.get(
-                    where={"path": full_path_str}, include=[IncludeEnum.metadatas]
+                asyncio.run(
+                    collection.get(
+                        where={"path": full_path_str},
+                        include=[IncludeEnum.metadatas],
+                    )
                 )["ids"]
             )
         if num_existing_chunks:
             with collection_lock:
-                collection.delete(where={"path": full_path_str})
+                asyncio.run(collection.delete(where={"path": full_path_str}))
             with stats_lock:
                 stats["update"] += 1
         else:
@@ -72,10 +76,12 @@ def vectorise(configs: Config) -> int:
                 fin
             ):
                 with collection_lock:
-                    collection.add(
-                        ids=[get_uuid()],
-                        documents=[chunk],
-                        metadatas=[{"path": full_path_str}],
+                    asyncio.run(
+                        collection.add(
+                            ids=[get_uuid()],
+                            documents=[chunk],
+                            metadatas=[{"path": full_path_str}],
+                        )
                     )
 
     with tqdm.tqdm(
@@ -92,12 +98,12 @@ def vectorise(configs: Config) -> int:
             print("Abort.", file=sys.stderr)
             return 1
 
-    all_results = collection.get(include=[IncludeEnum.metadatas])
+    all_results = await collection.get(include=[IncludeEnum.metadatas])
     if all_results is not None and all_results.get("metadatas"):
         for idx in range(len(all_results["ids"])):
             path_in_meta = str(all_results["metadatas"][idx].get("path"))
             if path_in_meta is not None and not os.path.isfile(path_in_meta):
-                collection.delete(where={"path": path_in_meta})
+                await collection.delete(where={"path": path_in_meta})
                 stats["removed"] += 1
 
     if configs.pipe:

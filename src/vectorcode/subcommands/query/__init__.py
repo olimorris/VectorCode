@@ -2,23 +2,22 @@ import json
 import os
 import sys
 
+from chromadb.api import AsyncClientAPI
 from chromadb.api.types import IncludeEnum
 from chromadb.errors import InvalidCollectionException, InvalidDimensionException
 
 from vectorcode.chunking import StringChunker
 from vectorcode.cli_utils import Config, expand_globs, expand_path
 from vectorcode.common import (
-    get_client,
     get_collection_name,
     get_embedding_function,
     verify_ef,
 )
 
 
-def query(configs: Config) -> int:
-    client = get_client(configs)
+async def query(configs: Config, client: AsyncClientAPI) -> int:
     try:
-        collection = client.get_collection(
+        collection = await client.get_collection(
             name=get_collection_name(str(configs.project_root)),
             embedding_function=get_embedding_function(configs),
         )
@@ -45,14 +44,14 @@ def query(configs: Config) -> int:
         if os.path.isfile(i)
     ]
     try:
-        num_query = collection.count()
+        num_query = await collection.count()
         if configs.query_multiplier > 0:
             num_query = configs.n_result * configs.query_multiplier
         if len(configs.query_exclude):
             filtered_files = {"path": {"$nin": configs.query_exclude}}
         else:
             filtered_files = None
-        results = collection.query(
+        results = await collection.query(
             query_texts=query_chunks,
             n_results=num_query,
             include=[

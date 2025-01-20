@@ -3,17 +3,17 @@ import os
 import socket
 
 import tabulate
+from chromadb.api import AsyncClientAPI
 from chromadb.api.types import IncludeEnum
 
 from vectorcode.cli_utils import Config
-from vectorcode.common import get_client
 
 
-def ls(configs: Config) -> int:
-    client = get_client(configs)
+async def ls(configs: Config, client: AsyncClientAPI) -> int:
     result: list[dict] = []
-    for collection_name in client.list_collections():
-        collection = client.get_collection(collection_name)
+    collections = await client.list_collections()
+    for collection_name in collections:
+        collection = await client.get_collection(collection_name)
         meta = collection.metadata
         if meta is None:
             continue
@@ -23,7 +23,7 @@ def ls(configs: Config) -> int:
             continue
         if meta.get("hostname") != socket.gethostname():
             continue
-        document_meta = collection.get(include=[IncludeEnum.metadatas])
+        document_meta = await collection.get(include=[IncludeEnum.metadatas])
         unique_files = set(
             i.get("path") for i in document_meta["metadatas"] if i is not None
         )
@@ -33,7 +33,7 @@ def ls(configs: Config) -> int:
                 "user": os.environ["USER"],
                 "hostname": socket.gethostname(),
                 "collection_name": collection_name,
-                "size": collection.count(),
+                "size": await collection.count(),
                 "embedding_function": meta["embedding_function"],
                 "num_files": len(unique_files),
             }
