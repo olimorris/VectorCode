@@ -1,11 +1,10 @@
 import asyncio
-import concurrent.futures as futures
 import hashlib
 import json
 import os
 import sys
 import uuid
-from threading import Lock
+from asyncio import Lock
 from typing import Any, Coroutine
 
 import pathspec
@@ -48,7 +47,7 @@ async def vectorise(
     collection_lock = Lock()
     stats_lock = Lock()
 
-    def chunked_add(file_path):
+    async def chunked_add(file_path: str):
         if (
             (not configs.force)
             and gitignore_spec is not None
@@ -58,47 +57,43 @@ async def vectorise(
             return
 
         full_path_str = str(expand_path(str(file_path), True))
-        with collection_lock:
+        async with collection_lock:
             num_existing_chunks = len(
-                asyncio.run(
-                    collection.get(
+                (
+                    await collection.get(
                         where={"path": full_path_str},
                         include=[IncludeEnum.metadatas],
                     )
                 )["ids"]
             )
         if num_existing_chunks:
-            with collection_lock:
-                asyncio.run(collection.delete(where={"path": full_path_str}))
-            with stats_lock:
+            async with collection_lock:
+                await collection.delete(where={"path": full_path_str})
+            async with stats_lock:
                 stats["update"] += 1
         else:
-            with stats_lock:
+            async with stats_lock:
                 stats["add"] += 1
         with open(full_path_str) as fin:
-            for chunk in FileChunker(configs.chunk_size, configs.overlap_ratio).chunk(
-                fin
-            ):
-                with collection_lock:
-                    asyncio.run(
-                        collection.add(
-                            ids=[get_uuid()],
-                            documents=[chunk],
-                            metadatas=[{"path": full_path_str}],
-                        )
-                    )
+            chunks = list(
+                FileChunker(configs.chunk_size, configs.overlap_ratio).chunk(fin)
+            )
+            async with collection_lock:
+                await collection.add(
+                    ids=[get_uuid() for _ in range(len(chunks))],
+                    documents=chunks,
+                    metadatas=[{"path": full_path_str} for _ in chunks],
+                )
 
     with tqdm.tqdm(
         total=len(files), desc="Vectorising files...", disable=configs.pipe
     ) as bar:
         try:
-            with futures.ThreadPoolExecutor(
-                max_workers=max((os.cpu_count() or 1) - 1, 1)
-            ) as executor:
-                jobs = (executor.submit(chunked_add, file) for file in files)
-                for future in futures.as_completed(jobs):
-                    bar.update(1)
-        except KeyboardInterrupt:
+            tasks = [asyncio.create_task(chunked_add(str(file))) for file in files]
+            for task in asyncio.as_completed(tasks):
+                await task
+                bar.update(1)
+        except asyncio.CancelledError:
             print("Abort.", file=sys.stderr)
             return 1
 
