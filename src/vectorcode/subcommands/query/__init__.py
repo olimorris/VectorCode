@@ -42,7 +42,7 @@ async def query(configs: Config, client_co: Coroutine[Any, Any, AsyncClientAPI])
     )
     configs.query_exclude = [
         expand_path(i, True)
-        for i in expand_globs(configs.query_exclude)
+        for i in await expand_globs(configs.query_exclude)
         if os.path.isfile(i)
     ]
     try:

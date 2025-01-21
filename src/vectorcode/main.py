@@ -18,20 +18,24 @@ from vectorcode.subcommands import check, drop, init, ls, query, vectorise
 
 
 def main():
-    cli_args = cli_arg_parser()
+    cli_args = asyncio.run(cli_arg_parser())
     match cli_args.action:
         case CliAction.check:
-            return check(cli_args)
-    project_config_dir = find_project_config_dir(cli_args.project_root)
+            return asyncio.run(check(cli_args))
+    project_config_dir = asyncio.run(find_project_config_dir(cli_args.project_root))
 
     if project_config_dir is not None:
         project_config_file = os.path.join(project_config_dir, "config.json")
         if os.path.isfile(project_config_file):
-            final_configs = load_config_file(project_config_file).merge_from(cli_args)
+            final_configs = asyncio.run(
+                asyncio.run(load_config_file(project_config_file)).merge_from(cli_args)
+            )
         else:
             final_configs = cli_args
     else:
-        final_configs = load_config_file().merge_from(cli_args)
+        final_configs = asyncio.run(
+            asyncio.run(load_config_file()).merge_from(cli_args)
+        )
 
     server_process = None
     if not try_server(final_configs.host, final_configs.port):

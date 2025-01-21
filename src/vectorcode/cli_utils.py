@@ -54,7 +54,7 @@ class Config:
     check_item: Optional[str] = None
 
     @classmethod
-    def import_from(cls, config_dict: dict[str, Any]) -> "Config":
+    async def import_from(cls, config_dict: dict[str, Any]) -> "Config":
         db_path = config_dict.get("db_path")
         host = config_dict.get("host") or "localhost"
         port = config_dict.get("port") or 8000
@@ -88,7 +88,7 @@ class Config:
             }
         )
 
-    def merge_from(self, other: "Config") -> "Config":
+    async def merge_from(self, other: "Config") -> "Config":
         """Return the merged config."""
         final_config = {}
         default_config = Config()
@@ -101,7 +101,7 @@ class Config:
         return Config(**final_config)
 
 
-def cli_arg_parser():
+async def cli_arg_parser():
     shared_parser = argparse.ArgumentParser(add_help=False)
     chunkinng_parser = argparse.ArgumentParser(add_help=False)
     chunkinng_parser.add_argument(
@@ -259,7 +259,7 @@ def expand_envs_in_dict(d: dict):
                 stack.append(curr[k])
 
 
-def load_config_file(path: Optional[PathLike] = None):
+async def load_config_file(path: Optional[PathLike] = None):
     """Load config file from ~/.config/vectorcode/config.json"""
     if path is None:
         path = GLOBAL_CONFIG_PATH
@@ -267,12 +267,12 @@ def load_config_file(path: Optional[PathLike] = None):
         with open(path) as fin:
             config = json.load(fin)
         expand_envs_in_dict(config)
-        return Config.import_from(config)
+        return await Config.import_from(config)
     print(f"{path} does not exist or is not a valid file.", file=sys.stderr)
     return Config()
 
 
-def find_project_config_dir(start_from: PathLike = "."):
+async def find_project_config_dir(start_from: PathLike = "."):
     """Returns the project-local config directory."""
     current_dir = Path(start_from).resolve()
     while current_dir:
@@ -292,7 +292,9 @@ def expand_path(path: PathLike, absolute: bool = False) -> PathLike:
     return expanded
 
 
-def expand_globs(paths: list[PathLike], recursive: bool = False) -> list[PathLike]:
+async def expand_globs(
+    paths: list[PathLike], recursive: bool = False
+) -> list[PathLike]:
     result = set()
     stack = paths
     while stack:

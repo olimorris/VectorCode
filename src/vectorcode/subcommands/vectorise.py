@@ -34,7 +34,7 @@ async def vectorise(
     collection = await make_or_get_collection(client, configs)
     if not verify_ef(collection, configs):
         return 1
-    files = expand_globs(configs.files or [], recursive=configs.recursive)
+    files = await expand_globs(configs.files or [], recursive=configs.recursive)
 
     gitignore_path = os.path.join(configs.project_root, ".gitignore")
     if os.path.isfile(gitignore_path):

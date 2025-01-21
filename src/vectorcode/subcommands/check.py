@@ -3,10 +3,10 @@ import sys
 from vectorcode.cli_utils import Config, find_project_config_dir
 
 
-def check(configs: Config) -> int:
+async def check(configs: Config) -> int:
     match configs.check_item:
         case "config":
-            project_local_config = find_project_config_dir(".")
+            project_local_config = await find_project_config_dir(".")
             if project_local_config is None:
                 print("Failed!", file=sys.stderr)
                 return 1
