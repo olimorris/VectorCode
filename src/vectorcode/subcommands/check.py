@@ -1,9 +1,11 @@
 import sys
 
-from vectorcode.cli_utils import Config, find_project_config_dir
+from vectorcode.cli_utils import CHECK_OPTIONS, Config, find_project_config_dir
 
 
 async def check(configs: Config) -> int:
+    assert isinstance(configs.check_item, str)
+    assert configs.check_item.lower() in CHECK_OPTIONS
     match configs.check_item:
         case "config":
             project_local_config = await find_project_config_dir(".")

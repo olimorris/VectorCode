@@ -18,6 +18,8 @@ GLOBAL_CONFIG_PATH = os.path.join(
     os.path.expanduser("~"), ".config", "vectorcode", "config.json"
 )
 
+CHECK_OPTIONS = ["config"]
+
 
 class CliAction(Enum):
     vectorise = "vectorise"
@@ -197,8 +199,12 @@ async def cli_arg_parser():
     check_parser = subparsers.add_parser(
         "check", parents=[shared_parser], help="Check for project-local setup."
     )
+
     check_parser.add_argument(
-        "check_item", type=str, help="Item to be checked. Valid values: [config]"
+        "check_item",
+        choices=CHECK_OPTIONS,
+        type=str,
+        help=f"Item to be checked. Possible options: [{', '.join(CHECK_OPTIONS)}]",
     )
 
     main_args = main_parser.parse_args()
