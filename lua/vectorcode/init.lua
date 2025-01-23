@@ -81,19 +81,34 @@ M.vectorise = function(files, project_root)
   else
     return
   end
+  if require("vectorcode.config").get_user_config().notify then
+    vim.schedule(function()
+      vim.notify(
+        ("Vectorising %s"):format(table.concat(files, ", ")),
+        vim.log.levels.INFO,
+        notify_opts
+      )
+    end)
+  end
   require("plenary.job")
     :new({
       command = "vectorcode",
       args = args,
       on_exit = function(job, return_code)
-        if return_code == 0 then
-          vim.notify(
-            "Indexing successful.",
-            vim.log.levels.INFO,
-            { title = "VectorCode" }
-          )
-        else
-          vim.notify("Indexing failed.", vim.log.levels.WARN, { title = "VectorCode" })
+        if require("vectorcode.config").get_user_config().notify then
+          if return_code == 0 then
+            vim.notify(
+              "Indexing successful.",
+              vim.log.levels.INFO,
+              { title = "VectorCode" }
+            )
+          else
+            vim.notify(
+              "Indexing failed.",
+              vim.log.levels.WARN,
+              { title = "VectorCode" }
+            )
+          end
         end
       end,
     })
