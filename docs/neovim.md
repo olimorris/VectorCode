@@ -52,7 +52,10 @@ The following are the available options for this function:
 - `notify`: whether to show notifications when a query is completed.
   Default: `true`;
 - `timeout_ms`: timeout in milliseconds for the query operation. Default: 
-  `5000` (5 seconds).
+  `5000` (5 seconds);
+- `exclude_this`: whether to exclude the file you're editing. Setting this to
+  `false` may lead to an outdated version of the current file being sent to the
+  LLM as the prompt, and can lead to generations with outdated information.
 
 ## Usage
 This plugin provides 2 sets of APIs that provides similar functionalities. The
@@ -87,7 +90,7 @@ The return value of this function is an array of results in the format of
 For example, in [cmp-ai](https://github.com/tzachar/cmp-ai), you can add 
 the path/document content to the prompt like this:
 ```lua
-function prompt(prefix, suffix)
+prompt = function(prefix, suffix)
     local retrieval_results = require("vectorcode").query("some query message", {
         n_query = 5,
     })
@@ -111,16 +114,16 @@ end
 
 
 #### `check(check_item?)`
-This function checks if VectorCode has been configured properly for your project.
+This function checks if VectorCode has been configured properly for your project. See the [CLI manual for details](./cli.md).
 
 ```lua 
 require("vectorcode").check()
 ```
 
 The following are the available options for this function:
-- `check_item`: one of `"config"`, `"db"` and `"all"`. If not set, it defaults
-  to `"all"`.
-Return value: `true` if passed, `false` if failed.
+- `check_item`: Only supports `"config"` at the moment. Checks if a project-local 
+  config is present.
+  Return value: `true` if passed, `false` if failed.
 
 This involves the `check` command of the CLI that checks the status of the
 VectorCode project setup. Use this as a pre-condition of any subsequent
@@ -151,8 +154,10 @@ The following are the available options for this function:
 - `opts`: same as the `setup` function above. This API will create an autocommand 
   that triggers a query when you write to the file, enter insert mode or read from 
   the file;
-- `query_cb`: a callback function that returns the query message. Default: 
-  `surrounding_lines_cb(-1)`, which queries the full buffer;
+- `query_cb`: a callback function that takes the buffer number as the only
+  argument and returns the query message. Some examples are bundled in the
+  plugin, accessible in `require("vectorcode.utils")` Default: 
+  `require("vectorcode.utils").surrounding_lines_cb(-1)`, which queries the full buffer;
 - `events`: a list of events to trigger the query. Default:
   `{"BufWritePost", "InsertEnter", "BufReadPost"}`;
 - `debounce`: debounce time in seconds for the query. Default: `10`.
@@ -175,7 +180,7 @@ This function returns a lualine component that displays the status of VectorCode
 for the current buffer. 
 
 ```lua
-require("vectorcode.cacher").lualine()
+lualine_x = { require("vectorcode.cacher").lualine() }
 ```
 
 #### `async_check(check_item?, on_success?, on_failure?)`

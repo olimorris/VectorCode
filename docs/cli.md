@@ -36,7 +36,8 @@ example, `pipx install vectorcode --python python3.11`.
 > The command only install VectorCode and `SentenceTransformer`, the default
 > embedding engine. To use a different embedding function supported by Chromadb,
 > you may need to use `pipx inject` to install extra dependences to the virtual
-> environment that `pipx` creates for VectorCode.
+> environment that `pipx` creates for VectorCode. This may include OpenAI,
+> Ollama and other self/cloud-hosted embedding model providers.
 
 ### Chromadb
 [Chromadb](https://www.trychroma.com/) is the vector database used by VectorCode
@@ -59,12 +60,14 @@ concept that will later be used to construct the collection. You may put a
 project-specific settings such as embedding functions and database entry point
 (more on this later). If you already have a global configuration file at
 `~/.config/vectorcode/config.json`, it will be copied to
-`project_root/.vectorcode/config.json` when you run `vectorcode init`.
+`project_root/.vectorcode/config.json` when you run `vectorcode init`. When a
+project-local config file is present, the global configuration file is ignored
+to avoid confusion. 
 
-If you skip this step, VectorCode may still work but you have to make sure that
-you always stay at the directory where you vectorised your code, because
-VectorCode defaults to the current working directory as the path to the
-embedding collection.
+If you skip `vectorcode init`, VectorCode may still work but you have to make sure 
+that you run any `vectorcode` command in the directory where you vectorised your 
+code, because VectorCode defaults to the current working directory as the path to 
+the embedding collection.
 
 ### Configuring VectorCode
 The JSON configuration file may hold the following values:
@@ -150,12 +153,12 @@ interpreted as separated words and the embeddings may be inaccurate. The
 returned results are sorted by their similarity to the query message.
 
 You may also specify how many documents should be retrieved with `-n`/`--number`
-parameter (default is 5). This is the maximum number of documents that may be
+parameter (default is 1). This is the maximum number of documents that may be
 returned. Depending on a number of factors, the actual returned documents may be
-less than this number.
+less than this number but at least 1 document will be returned.
 
 You may also set a multiplier for the queries. When VectorCode sends queries to
-the database, it recieves chunks, not document. It then uses some scoring
+the database, it receives chunks, not document. It then uses some scoring
 algorithms to determine which documents are the best fit. The multiplier, set by
 command-line flag `--multiplier` or `-m`, defines how many chunks VectorCode
 will request from the database. The default is `-1`, which means to retrieve all 
