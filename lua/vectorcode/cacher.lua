@@ -119,7 +119,6 @@ function M.register_buffer(bufnr, opts, query_cb, events, debounce)
         cache
       )
     end)
-    return
   end
   events = events or { "BufWritePost", "InsertEnter", "BufReadPost" }
   query_cb = query_cb or require("vectorcode.utils").surrounding_lines_cb(-1)
@@ -136,6 +135,10 @@ function M.register_buffer(bufnr, opts, query_cb, events, debounce)
   end)
   vim.schedule(function()
     vim.api.nvim_create_autocmd(events, {
+      group = vim.api.nvim_create_augroup(
+        ("VectorCodeCacheGroup%d"):format(bufnr),
+        { clear = true }
+      ),
       callback = function()
         assert(
           vim.b[bufnr].vectorcode_cache ~= nil,
