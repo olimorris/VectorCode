@@ -35,11 +35,12 @@ async def query(configs: Config, client_co: Coroutine[Any, Any, AsyncClientAPI])
     if not configs.pipe:
         print("Starting querying...")
 
-    query_chunks = list(
-        StringChunker(configs.chunk_size, configs.overlap_ratio).chunk(
-            configs.query or ""
-        )
-    )
+    query_chunks = []
+    if configs.query:
+        chunker = StringChunker(configs.chunk_size, configs.overlap_ratio)
+        for q in configs.query:
+            query_chunks.extend(chunker.chunk(q))
+
     configs.query_exclude = [
         expand_path(i, True)
         for i in await expand_globs(configs.query_exclude)

@@ -39,7 +39,7 @@ class Config:
     action: Optional[CliAction] = None
     files: list[PathLike] = field(default_factory=list)
     project_root: PathLike = Path(".")
-    query: Optional[str] = None
+    query: Optional[list[str]] = None
     host: str = "127.0.0.1"
     port: int = 8000
     embedding_function: str = "SentenceTransformerEmbeddingFunction"  # This should fallback to whatever the default is.
@@ -229,7 +229,7 @@ async def cli_arg_parser():
             chunk_size = main_args.chunk_size
             overlap_ratio = main_args.overlap
         case "query":
-            query = " ".join(main_args.query)
+            query = main_args.query
             number_of_result = main_args.number
             query_multiplier = main_args.multiplier
             query_exclude = main_args.exclude
