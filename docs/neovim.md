@@ -23,6 +23,8 @@
     * [`lualine()`](#lualine)
     * [`async_check(check_item?, on_success?, on_failure?)`](#async_checkcheck_item-on_success-on_failure)
     * [`buf_is_registered(bufnr?)`](#buf_is_registeredbufnr)
+* [User Command](#user-command)
+  * [`VectorCode register`](#vectorcode-register)
 
 <!-- mtoc-end -->
 
@@ -210,3 +212,8 @@ require("vectorcode.cacher").buf_is_registered()
 The following are the available options for this function:
 - `bufnr`: buffer number. Default: current buffer.
 Return value: `true` if registered, `false` otherwise.
+
+## User Command
+### `VectorCode register`
+
+Register the current buffer for async caching.

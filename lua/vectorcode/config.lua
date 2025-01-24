@@ -11,6 +11,7 @@ local config = {
 }
 
 local setup_config = vim.deepcopy(config, true)
+local notify_opts = { title = "VectorCode" }
 return {
   get_default_config = function()
     return vim.deepcopy(config, true)
@@ -19,10 +20,27 @@ return {
   ---@param opts VectorCodeConfig?
   setup = function(opts)
     setup_config = vim.tbl_deep_extend("force", config, opts or {})
+    vim.api.nvim_create_user_command("VectorCode", function(args)
+      if args.fargs[1] == "register" then
+        local bufnr = vim.api.nvim_get_current_buf()
+        require("vectorcode.cacher").register_buffer(bufnr)
+        vim.notify(
+          ("Buffer %d has been registered for VectorCode."):format(bufnr),
+          vim.log.levels.INFO,
+          notify_opts
+        )
+      else
+        vim.notify(
+          ([[Command "VectorCode %s" was not recognised.]]):format(args.args),
+          vim.log.levels.ERROR,
+          notify_opts
+        )
+      end
+    end, { nargs = 1 })
   end,
 
   get_user_config = function()
     return vim.deepcopy(setup_config, true)
   end,
-  notify_opts = { title = "VectorCode" },
+  notify_opts = notify_opts,
 }
