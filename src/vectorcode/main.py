@@ -2,6 +2,7 @@ import asyncio
 import logging
 import os
 import signal
+from pathlib import Path
 from typing import Any, Coroutine
 
 from chromadb.api import AsyncClientAPI
@@ -22,9 +23,12 @@ async def async_main():
     match cli_args.action:
         case CliAction.check:
             return await check(cli_args)
-    project_config_dir = await find_project_config_dir(cli_args.project_root)
+    project_config_dir = await find_project_config_dir(cli_args.project_root or ".")
 
     if project_config_dir is not None:
+        if cli_args.project_root is None:
+            cli_args.project_root = str(Path(project_config_dir).parent.resolve())
+
         project_config_file = os.path.join(project_config_dir, "config.json")
         if os.path.isfile(project_config_file):
             final_configs = await (

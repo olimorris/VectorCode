@@ -38,7 +38,7 @@ class Config:
     pipe: bool = False
     action: Optional[CliAction] = None
     files: list[PathLike] = field(default_factory=list)
-    project_root: PathLike = Path(".")
+    project_root: Optional[PathLike] = None
     query: Optional[list[str]] = None
     host: str = "127.0.0.1"
     port: int = 8000
@@ -118,7 +118,7 @@ async def cli_arg_parser():
     )
     shared_parser.add_argument(
         "--project_root",
-        default="",
+        default=None,
         help="Project root to be used as an identifier of the project.",
     ).complete = shtab.DIRECTORY
     shared_parser.add_argument(
