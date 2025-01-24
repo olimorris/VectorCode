@@ -1,24 +1,32 @@
 local M = {}
 
-local function traverse(node)
+local function traverse(node, cb)
+  if node == nil then
+    return
+  end
+  if node.result ~= nil then
+    traverse(node.result, cb)
+  end
   if vim.isarray(node) then
     for k, v in pairs(node) do
-      node[k] = traverse(v)
+      traverse(v, cb)
     end
+    return
   end
   if vim.isarray(node.children) then
     for k, v in pairs(node.children) do
-      node.children[k] = traverse(v)
+      traverse(v, cb)
     end
   end
-  node.selectionRange = nil
-  if not vim.list_contains({ 15, 16, 21, 25 }, node.kind) then
+  if not vim.list_contains({ 15, 16, 20, 21, 25 }, node.kind) then
     -- exclude certain kinds.
-    return node
+    if cb then
+      cb(node)
+    end
   end
 end
 
----@alias VectorCodeQueryCallback fun(bufnr:integer?):string
+---@alias VectorCodeQueryCallback fun(bufnr:integer?):string|string[]
 
 ---@return VectorCodeQueryCallback
 function M.lsp_document_symbol_cb()
@@ -33,7 +41,13 @@ function M.lsp_document_symbol_cb()
       { textDocument = vim.lsp.util.make_text_document_params(bufnr) }
     )
     if ok then
-      return vim.json.encode(traverse(result))
+      local symbols = {}
+      traverse(result, function(node)
+        if node.name ~= nil then
+          vim.list_extend(symbols, { node.name })
+        end
+      end)
+      return symbols
     else
       return M.surrounding_lines_cb(-1)(bufnr)
     end

@@ -8,7 +8,7 @@ local notify_opts = require("vectorcode.config").notify_opts
 ---@field path string
 ---@field document string
 
----@param query_message string
+---@param query_message string|string[]
 ---@param opts VectorCodeConfig?
 ---@return VectorCodeResult[]
 M.query = function(query_message, opts)
@@ -29,9 +29,14 @@ M.query = function(query_message, opts)
       notify_opts
     )
   end
+  local args = { "query", "--pipe", "-n", tostring(opts.n_query) }
+  if type(query_message) == "string" then
+    query_message = { query_message }
+  end
+  vim.list_extend(args, query_message)
   local job = require("plenary.job"):new({
     command = "vectorcode",
-    args = { "query", "--pipe", "-n", tostring(opts.n_query), query_message },
+    args = args,
     on_exit = function(self, code, signal)
       if code ~= 0 then
         raw_response = nil
@@ -81,7 +86,7 @@ M.vectorise = function(files, project_root)
   else
     return
   end
-  if require("vectorcode.config").get_user_config().notify then
+  if get_config().notify then
     vim.schedule(function()
       vim.notify(
         ("Vectorising %s"):format(table.concat(files, ", ")),
@@ -95,7 +100,7 @@ M.vectorise = function(files, project_root)
       command = "vectorcode",
       args = args,
       on_exit = function(job, return_code)
-        if require("vectorcode.config").get_user_config().notify then
+        if get_config().notify then
           if return_code == 0 then
             vim.notify(
               "Indexing successful.",

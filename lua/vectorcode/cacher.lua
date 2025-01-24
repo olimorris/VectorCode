@@ -16,7 +16,7 @@ local default_vectorcode_cache = {
   jobs = {},
 }
 
----@param query_message string
+---@param query_message string|string[]
 ---@param buf_nr integer
 local function async_runner(query_message, buf_nr)
   if not vim.b[buf_nr].vectorcode_cache.enabled then
@@ -29,8 +29,12 @@ local function async_runner(query_message, buf_nr)
     "--pipe",
     "-n",
     tostring(cache.options.n_query),
-    query_message,
   }
+
+  if type(query_message) == "string" then
+    query_message = { query_message }
+  end
+  vim.list_extend(args, query_message)
 
   if cache.exclude_this then
     vim.list_extend(args, { "--exclude", vim.api.nvim_buf_get_name(buf_nr) })
