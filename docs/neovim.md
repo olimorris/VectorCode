@@ -11,6 +11,7 @@
 <!-- mtoc-start -->
 
 * [Installation](#installation)
+  * [Example Configuration](#example-configuration)
 * [Configuration](#configuration)
   * [`setup(opts?)`](#setupopts)
 * [Usage](#usage)
@@ -37,6 +38,77 @@ Use your favourite plugin manager.
   dependencies = { "nvim-lua/plenary.nvim" },
 }
 ```
+
+### Example Configuration
+
+For VectorCode to work with a LLM plugin, you need to somehow integrate the
+query results into the prompt.
+
+Here's how VectorCode may be used with 
+[minuet-au.nvim](https://github.com/milanglacier/minuet-ai.nvim):
+```lua
+{
+  "milanglacier/minuet-ai.nvim",
+  config = function()
+    -- This uses the async cache to accelerate the prompt construction.
+    -- There's also the require('vectorcode').query API, which provides 
+    -- more up-to-date information, but at the cost of blocking the main UI.
+    local vectorcode_cacher = require("vectorcode.cacher")
+    require("minuet").setup({
+      add_single_line_entry = true,
+      n_completions = 1,
+      after_cursor_filter_length = 0,
+      notify = "debug",
+      provider = "openai_fim_compatible",
+      provider_options = {
+        openai_fim_compatible = {
+          api_key = "TERM",
+          name = "Ollama",
+          stream = false,
+          end_point = "http://127.0.0.1:11434/v1/completions",
+          model = "qwen2.5-coder:7b-base-q4_1",
+          template = {
+            prompt = function(pref, suff)
+              local prompt_message = ""
+              for _, file in ipairs(vectorcode_cacher.query_from_cache(0)) do
+                prompt_message = "<|file_sep|>" .. file.path .. "\n" .. file.document
+              end
+              return prompt_message
+                .. "<|fim_prefix|>"
+                .. pref
+                .. "<|fim_suffix|>"
+                .. suff
+                .. "<|fim_middle|>"
+            end,
+            suffix = nil,
+          },
+        },
+      },
+    })
+  end,
+}
+```
+
+To use [async cache](#cached-asynchronous-api), you need to register the buffer.
+You may either manually register a buffer using the [user command](#vectorcode-register)
+`VectorCode register` to manually register a buffer, or set up an autocommand:
+```lua
+vim.api.nvim_create_autocmd("LspAttach", {
+  callback = function()
+    local bufnr = vim.api.nvim_get_current_buf()
+    cacher.async_check("config", function()
+      cacher.register_buffer(
+        bufnr,
+        { notify = false, n_query = 10 },
+        require("vectorcode.utils").lsp_document_symbol_cb(),
+        { "BufWritePost" }
+      )
+    end, nil)
+  end,
+  desc = "Register buffer for VectorCode",
+})
+```
+to automatically register a new buffer.
 
 ## Configuration
 
