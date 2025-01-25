@@ -7,6 +7,7 @@
   * [Install from Source](#install-from-source)
   * [Chromadb](#chromadb)
 * [Getting Started](#getting-started)
+* [Configuration Options](#configuration-options)
   * [Initialising a Project](#initialising-a-project)
   * [Configuring VectorCode](#configuring-vectorcode)
 * [Vectorising Your Code](#vectorising-your-code)
@@ -57,6 +58,40 @@ You may consult Chromadb documentation to find out more about how to set up a
 local Chromadb server.
 
 ## Getting Started
+
+`cd` into your project root repo, and run:
+```bash
+vectorcode init
+```
+This will initialise the project for VectorCode and create a `.vectorcode`
+directory in your project root. This is where you keep your configuration file
+for VectorCode, if any.
+
+After that, you can start vectorising files for the project:
+```bash
+vectorcode vectorise src/**/*.py
+```
+And now, you're ready to make queries that will retrieve the relevant documents:
+```bash
+vectorcode query reranker -n 3
+```
+This will try to find the 3 most relevant documents in the embedding database
+that are related to the query `reranker`. You can pass multiple query words:
+```bash
+vectorcode query embedding reranking -n 3
+```
+or if you want to query a sentence, wrap them in quotation mark:
+```bash
+vectorcode query "How to configure reranker model"
+```
+
+If you want to wipe the embedding for the repository (to use a new embedding
+function or after an upgrade with breaking changes), use
+```bash
+vectorcode drop
+```
+
+## Configuration Options
 ### Initialising a Project
 For each project, VectorCode creates a collection (similar to tables in
 traditional databases) and puts the code embeddings in the corresponsing
@@ -125,7 +160,7 @@ The JSON configuration file may hold the following values:
 
 ## Vectorising Your Code
 
-Run `vectorcode vectorise <path_to_your_code>` or `vectorcode vectorise
+Run `vectorcode vectorise <path_to_your_file>` or `vectorcode vectorise
 <directory> -r`. There are a few extra tweaks you may use:
 
 - chunk size: embedding APIs may truncate long documents so that the documents 
