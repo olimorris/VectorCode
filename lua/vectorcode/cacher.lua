@@ -123,20 +123,21 @@ function M.register_buffer(bufnr, opts, query_cb, events, debounce)
         cache
       )
     end)
+  else
+    query_cb = query_cb or require("vectorcode.utils").surrounding_lines_cb(-1)
+    opts = vim.tbl_deep_extend("keep", opts or {}, vc_config.get_user_config())
+    vim.schedule(function()
+      ---@type VectorCodeCache
+      vim.api.nvim_buf_set_var(bufnr, "vectorcode_cache", {
+        enabled = true,
+        retrieval = nil,
+        options = opts,
+        query_cb = query_cb,
+        jobs = {},
+      })
+    end)
   end
   events = events or { "BufWritePost", "InsertEnter", "BufReadPost" }
-  query_cb = query_cb or require("vectorcode.utils").surrounding_lines_cb(-1)
-  opts = vim.tbl_deep_extend("keep", opts or {}, vc_config.get_user_config())
-  vim.schedule(function()
-    ---@type VectorCodeCache
-    vim.api.nvim_buf_set_var(bufnr, "vectorcode_cache", {
-      enabled = true,
-      retrieval = nil,
-      options = opts,
-      query_cb = query_cb,
-      jobs = {},
-    })
-  end)
   vim.schedule(function()
     vim.api.nvim_create_autocmd(events, {
       group = vim.api.nvim_create_augroup(
