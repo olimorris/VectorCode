@@ -71,6 +71,14 @@ M.vectorise = function(files, project_root)
   local args = { "--pipe", "vectorise" }
   if project_root ~= nil then
     vim.list_extend(args, { "--project_root", project_root })
+  elseif
+    M.check("config", function(obj)
+      if obj.code == 0 then
+        project_root = obj.stdout
+      end
+    end)
+  then
+    vim.list_extend(args, { "--project_root", project_root })
   end
   if type(files) == "string" then
     files = { files }
@@ -121,13 +129,17 @@ M.vectorise = function(files, project_root)
 end
 
 ---@param check_item string?
+---@param stdout_cb fun(stdout: vim.SystemCompleted)?
 ---@return boolean
-function M.check(check_item)
+function M.check(check_item, stdout_cb)
   check_item = check_item or "config"
   local return_code
   vim
     .system({ "vectorcode", "check", check_item }, {}, function(out)
       return_code = out.code
+      if type(stdout_cb) == "function" then
+        stdout_cb(out)
+      end
     end)
     :wait()
   return return_code == 0
