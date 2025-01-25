@@ -38,6 +38,8 @@ async def async_main():
             final_configs = cli_args
     else:
         final_configs = await (await load_config_file()).merge_from(cli_args)
+        if final_configs.project_root is None:
+            final_configs.project_root = "."
 
     server_process = None
     if not try_server(final_configs.host, final_configs.port):
@@ -63,6 +65,7 @@ async def async_main():
                 return_val = await ls(final_configs, client_co)
             case CliAction.init:
                 return_val = await init(final_configs)
+                client_co.close()
             case CliAction.version:
                 print(__version__)
                 return_val = 0

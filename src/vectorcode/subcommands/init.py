@@ -6,7 +6,7 @@ from vectorcode.cli_utils import GLOBAL_CONFIG_PATH, Config
 
 
 async def init(configs: Config) -> int:
-    project_config_dir = os.path.join(configs.project_root, ".vectorcode")
+    project_config_dir = os.path.join(str(configs.project_root), ".vectorcode")
     if os.path.isdir(project_config_dir):
         print(
             f"{configs.project_root} is already initialised for VectorCode.",
