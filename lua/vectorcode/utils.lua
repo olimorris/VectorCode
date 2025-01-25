@@ -34,13 +34,22 @@ function M.lsp_document_symbol_cb()
     if bufnr == 0 or bufnr == nil then
       bufnr = vim.api.nvim_get_current_buf()
     end
-    local ok, result = pcall(
-      vim.lsp.buf_request_sync,
+    local has_documentSymbol = false
+    for _, client in ipairs(vim.lsp.get_clients({ bufnr = bufnr })) do
+      if client.server_capabilities.documentSymbolProvider then
+        has_documentSymbol = true
+      end
+    end
+    if not has_documentSymbol then
+      return M.surrounding_lines_cb(-1)(bufnr)
+    end
+
+    local result, err = vim.lsp.buf_request_sync(
       0,
       vim.lsp.protocol.Methods.textDocument_documentSymbol,
       { textDocument = vim.lsp.util.make_text_document_params(bufnr) }
     )
-    if ok then
+    if result ~= nil then
       local symbols = {}
       traverse(result, function(node)
         if node.name ~= nil then
