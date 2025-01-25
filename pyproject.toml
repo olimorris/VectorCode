@@ -17,6 +17,11 @@ requires-python = ">=3.11,<3.14"
 readme = "README.md"
 license = { text = "MIT" }
 
+[project.urls]
+homepage = "https://github.com/Davidyz/VectorCode"
+github = "https://github.com/Davidyz/VectorCode"
+documentation = "https://github.com/Davidyz/VectorCode/blob/main/docs/cli.md"
+
 [project.optional-dependencies]
 intel = ['optimum[openvino]']
 
