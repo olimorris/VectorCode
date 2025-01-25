@@ -4,7 +4,7 @@ import os
 import socket
 import subprocess
 import sys
-from typing import Any, Coroutine, Optional
+from typing import Any, Coroutine
 
 import aiohttp
 import chromadb
@@ -105,7 +105,7 @@ def get_collection_name(full_path: str) -> str:
     return collection_id
 
 
-def get_embedding_function(configs: Config) -> Optional[chromadb.EmbeddingFunction]:
+def get_embedding_function(configs: Config) -> chromadb.EmbeddingFunction:
     try:
         return getattr(embedding_functions, configs.embedding_function)(
             **configs.embedding_params
