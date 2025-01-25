@@ -1,4 +1,5 @@
 import sys
+from pathlib import Path
 
 from vectorcode.cli_utils import CHECK_OPTIONS, Config, find_project_config_dir
 
@@ -12,5 +13,6 @@ async def check(configs: Config) -> int:
             if project_local_config is None:
                 print("Failed!", file=sys.stderr)
                 return 1
-    print("Passed!", file=sys.stderr)
+            else:
+                print(str(Path(project_local_config).parent))
     return 0

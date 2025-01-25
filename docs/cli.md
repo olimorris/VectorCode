@@ -234,6 +234,7 @@ You may run `vectorcode check` command to check whether VectorCode is properly
 installed and configured for your project. This currently supports only 1 check:
 
 - `config`: checks whether a project-local configuration directory exists.
+  Prints the project-root if successful, otherwise returns a non-zero exit code.
 
 Running `vectorcode check config` is faster than running `vectorcode query
 some_message` and then getting an empty results.
