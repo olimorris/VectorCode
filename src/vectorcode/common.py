@@ -115,6 +115,7 @@ def get_embedding_function(configs: Config) -> Optional[chromadb.EmbeddingFuncti
             f"Failed to use {configs.embedding_function}. Falling back to Sentence Transformer.",
             file=sys.stderr,
         )
+    finally:
         return embedding_functions.SentenceTransformerEmbeddingFunction()
 
 

@@ -27,7 +27,6 @@ def get_uuid() -> str:
 
 async def vectorise(configs: Config) -> int:
     client = await get_client(configs)
-    print("hrere")
     collection = await make_or_get_collection(client, configs)
     if not verify_ef(collection, configs):
         return 1
