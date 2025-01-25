@@ -62,11 +62,6 @@ class Config:
         port = config_dict.get("port") or 8000
         if db_path is None:
             db_path = os.path.expanduser("~/.local/share/vectorcode/chromadb/")
-            if not os.path.isdir(db_path):
-                print(
-                    f"Creating database at {os.path.expanduser('~/.local/share/vectorcode/chromadb/')}.",
-                    file=sys.stderr,
-                )
         elif not os.path.isdir(db_path):
             print(
                 f"{str(db_path)} is not a valid directory!",

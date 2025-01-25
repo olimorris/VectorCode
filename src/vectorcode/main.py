@@ -3,9 +3,6 @@ import logging
 import os
 import signal
 from pathlib import Path
-from typing import Any, Coroutine
-
-from chromadb.api import AsyncClientAPI
 
 from vectorcode import __version__
 from vectorcode.cli_utils import (
@@ -14,7 +11,7 @@ from vectorcode.cli_utils import (
     find_project_config_dir,
     load_config_file,
 )
-from vectorcode.common import get_client, start_server, try_server
+from vectorcode.common import start_server, try_server
 from vectorcode.subcommands import check, drop, init, ls, query, vectorise
 
 
@@ -45,8 +42,6 @@ async def async_main():
     if not try_server(final_configs.host, final_configs.port):
         server_process = start_server(final_configs)
 
-    client_co: Coroutine[Any, Any, AsyncClientAPI] = get_client(final_configs)
-
     if final_configs.pipe:
         # NOTE: NNCF (intel GPU acceleration for sentence transformer) keeps showing logs.
         # This disables logs below ERROR so that it doesn't hurt the `pipe` output.
@@ -56,16 +51,15 @@ async def async_main():
     try:
         match final_configs.action:
             case CliAction.query:
-                return_val = await query(final_configs, client_co)
+                return_val = await query(final_configs)
             case CliAction.vectorise:
-                return_val = await vectorise(final_configs, client_co)
+                return_val = await vectorise(final_configs)
             case CliAction.drop:
-                return_val = await drop(final_configs, client_co)
+                return_val = await drop(final_configs)
             case CliAction.ls:
-                return_val = await ls(final_configs, client_co)
+                return_val = await ls(final_configs)
             case CliAction.init:
                 return_val = await init(final_configs)
-                client_co.close()
             case CliAction.version:
                 print(__version__)
                 return_val = 0

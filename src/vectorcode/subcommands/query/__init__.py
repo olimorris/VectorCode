@@ -1,23 +1,22 @@
 import json
 import os
 import sys
-from typing import Any, Coroutine
 
-from chromadb.api import AsyncClientAPI
 from chromadb.api.types import IncludeEnum
 from chromadb.errors import InvalidCollectionException, InvalidDimensionException
 
 from vectorcode.chunking import StringChunker
 from vectorcode.cli_utils import Config, expand_globs, expand_path
 from vectorcode.common import (
+    get_client,
     get_collection_name,
     get_embedding_function,
     verify_ef,
 )
 
 
-async def query(configs: Config, client_co: Coroutine[Any, Any, AsyncClientAPI]) -> int:
-    client = await client_co
+async def query(configs: Config) -> int:
+    client = await get_client(configs)
     try:
         collection = await client.get_collection(
             name=get_collection_name(str(configs.project_root)),

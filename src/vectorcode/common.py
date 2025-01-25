@@ -48,6 +48,11 @@ def start_server(configs: Config):
     assert configs.host is not None
     assert configs.port is not None
     assert configs.db_path is not None
+    if not os.path.isdir(configs.db_path):
+        print(
+            f"Creating database at {os.path.expanduser('~/.local/share/vectorcode/chromadb/')}.",
+            file=sys.stderr,
+        )
     process = subprocess.Popen(
         [
             sys.executable,
@@ -61,7 +66,7 @@ def start_server(configs: Config):
             "--path",
             str(configs.db_path),
             "--log-path",
-            os.path.join(configs.project_root, "chroma.log"),
+            os.path.join(str(configs.project_root), "chroma.log"),
         ],
         stdout=subprocess.DEVNULL,
         stderr=sys.stderr,
@@ -114,7 +119,7 @@ def get_embedding_function(configs: Config) -> Optional[chromadb.EmbeddingFuncti
 
 
 async def make_or_get_collection(client: AsyncClientAPI, configs: Config):
-    full_path = str(expand_path(configs.project_root, absolute=True))
+    full_path = str(expand_path(str(configs.project_root), absolute=True))
     collection = await client.get_or_create_collection(
         get_collection_name(full_path),
         metadata={

@@ -5,17 +5,15 @@ import os
 import sys
 import uuid
 from asyncio import Lock
-from typing import Any, Coroutine
 
 import pathspec
 import tabulate
 import tqdm
-from chromadb.api import AsyncClientAPI
 from chromadb.api.types import IncludeEnum
 
 from vectorcode.chunking import FileChunker
 from vectorcode.cli_utils import Config, expand_globs, expand_path
-from vectorcode.common import make_or_get_collection, verify_ef
+from vectorcode.common import get_client, make_or_get_collection, verify_ef
 
 
 def hash_str(string: str) -> str:
@@ -27,16 +25,15 @@ def get_uuid() -> str:
     return uuid.uuid4().hex
 
 
-async def vectorise(
-    configs: Config, client_co: Coroutine[Any, Any, AsyncClientAPI]
-) -> int:
-    client = await client_co
+async def vectorise(configs: Config) -> int:
+    client = await get_client(configs)
+    print("hrere")
     collection = await make_or_get_collection(client, configs)
     if not verify_ef(collection, configs):
         return 1
     files = await expand_globs(configs.files or [], recursive=configs.recursive)
 
-    gitignore_path = os.path.join(configs.project_root, ".gitignore")
+    gitignore_path = os.path.join(str(configs.project_root), ".gitignore")
     if os.path.isfile(gitignore_path):
         with open(gitignore_path) as fin:
             gitignore_spec = pathspec.GitIgnoreSpec.from_lines(fin.readlines())
