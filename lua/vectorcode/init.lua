@@ -34,6 +34,10 @@ M.query = function(query_message, opts)
     query_message = { query_message }
   end
   vim.list_extend(args, query_message)
+
+  if opts.exclude_this then
+    vim.list_extend(args, { "--exclude", vim.api.nvim_buf_get_name(0) })
+  end
   local job = require("plenary.job"):new({
     command = "vectorcode",
     args = args,
