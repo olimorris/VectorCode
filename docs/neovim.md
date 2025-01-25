@@ -35,9 +35,23 @@ Use your favourite plugin manager.
 ```lua 
 {
   "Davidyz/VectorCode",
+  version = "*",
   dependencies = { "nvim-lua/plenary.nvim" },
 }
 ```
+The VectorCode CLI and neovim plugin share the same release scheme (version
+numbers). In other words, CLI 0.1.3 is guaranteed to work with neovim plugin
+0.1.3, but if you use CLI 0.1.0 with neovim plugin 0.1.3, they may not work
+together because the neovim plugin is built for a newer CLI release.
+
+To ensure maximum compatibility, please either:
+1. Use release build for VectorCode CLI and pin to the release tags for the
+   neovim plugin;
+
+**OR**
+
+2. Use the latest commit for the neovim plugin with VectorCode installed from
+   the latest GitHub commit.
 
 ### Example Configuration
 

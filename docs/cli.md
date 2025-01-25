@@ -4,6 +4,7 @@
 <!-- mtoc-start -->
 
 * [Installation](#installation)
+  * [Install from Source](#install-from-source)
   * [Chromadb](#chromadb)
 * [Getting Started](#getting-started)
   * [Initialising a Project](#initialising-a-project)
@@ -38,6 +39,13 @@ example, `pipx install vectorcode --python python3.11`.
 > you may need to use `pipx inject` to install extra dependences to the virtual
 > environment that `pipx` creates for VectorCode. This may include OpenAI,
 > Ollama and other self/cloud-hosted embedding model providers.
+
+### Install from Source
+To install from source, either `git clone` this reposority and run `pipx install
+<path_to_repo>` or use the git URL:
+```bash
+pipx install git+https://github.com/Davidyz/VectorCode
+```
 
 ### Chromadb
 [Chromadb](https://www.trychroma.com/) is the vector database used by VectorCode
