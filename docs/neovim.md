@@ -11,10 +11,10 @@
 <!-- mtoc-start -->
 
 * [Installation](#installation)
-  * [Example Configuration](#example-configuration)
+* [Quick Start](#quick-start)
 * [Configuration](#configuration)
   * [`setup(opts?)`](#setupopts)
-* [Usage](#usage)
+* [API Usage](#api-usage)
   * [Synchronous API](#synchronous-api)
     * [`query(query_message, opts?)`](#queryquery_message-opts)
     * [`check(check_item?)`](#checkcheck_item)
@@ -53,7 +53,7 @@ To ensure maximum compatibility, please either:
 2. Use the latest commit for the neovim plugin with VectorCode installed from
    the latest GitHub commit.
 
-### Example Configuration
+## Quick Start
 
 For VectorCode to work with a LLM plugin, you need to somehow integrate the
 query results into the prompt.
@@ -105,7 +105,7 @@ Here's how VectorCode may be used with
 
 To use [async cache](#cached-asynchronous-api), you need to register the buffer.
 You may either manually register a buffer using the [user command](#vectorcode-register)
-`VectorCode register` to manually register a buffer, or set up an autocommand:
+`VectorCode register`, or set up an autocommand:
 ```lua
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function()
@@ -145,7 +145,7 @@ The following are the available options for this function:
   `false` may lead to an outdated version of the current file being sent to the
   LLM as the prompt, and can lead to generations with outdated information.
 
-## Usage
+## API Usage
 This plugin provides 2 sets of APIs that provides similar functionalities. The
 synchronous APIs provide more up-to-date retrieval results at the cost of
 blocking the main neovim UI, while the async APIs use a caching mechanism to 
@@ -260,7 +260,7 @@ require("vectorcode.cacher").query_from_cache()
 The following are the available options for this function:
 - `bufnr`: buffer number. Default: current buffer.
 
-Return value: an array of results in the format of 
+Return value: an array of results. Each item of the array is in the format of 
 `{path="path/to/your/code.lua", document="document content"}`.
 
 #### `lualine()`

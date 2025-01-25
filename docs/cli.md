@@ -46,20 +46,19 @@ flag. For example, `pipx install vectorcode --python python3.11`.
 
 ### Install from Source
 To install from source, either `git clone` this reposority and run `pipx install
-<path_to_repo>` or use the git URL:
+<path_to_vectorcode_repo>`, or use the git URL:
 ```bash
 pipx install git+https://github.com/Davidyz/VectorCode
 ```
 
 ### Chromadb
 [Chromadb](https://www.trychroma.com/) is the vector database used by VectorCode
-to store and retrieve the code embeddings. It is not necessary to 
-install Chromadb itself as a stand-alone application because it's already 
-bundled with VectorCode as a dependency, but having a Chromadb host running in
-the background help with the performance because it reduces the IO overhead, so
-it is recommended that you keep a Chromadb service in the background (with
-docker or Systemd service). You may consult Chromadb documentation to find out 
-more about how to do this.
+to store and retrieve the code embeddings. Although it is already bundled with
+VectorCode and you can absolutely use VectorCode just fine, it is recommended to
+set up a standalone local server (they provides detailed instructions through
+[docker](https://docs.trychroma.com/production/containers/docker) and
+[systemd](https://cookbook.chromadb.dev/running/systemd-service/)), because this
+will significantly reduce the IO overhead.
 
 ## Getting Started
 
