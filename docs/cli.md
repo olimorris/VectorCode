@@ -7,7 +7,7 @@
   * [Install from Source](#install-from-source)
   * [Chromadb](#chromadb)
 * [Getting Started](#getting-started)
-* [Configuration Options](#configuration-options)
+* [Advanced Usage](#advanced-usage)
   * [Initialising a Project](#initialising-a-project)
   * [Configuring VectorCode](#configuring-vectorcode)
 * [Vectorising Your Code](#vectorising-your-code)
@@ -30,9 +30,12 @@ installation is through [`pipx`](https://pipx.pypa.io/stable/), which will
 create a virtual environment for the package itself that doesn't mess up with
 your system Python or project-local virtual environments.
 
-After installing `pipx`, run `pipx install vectorcode` in your shell. To
-specify a particular version of Python, use the `--python` flag. For 
-example, `pipx install vectorcode --python python3.11`.
+After installing `pipx`, run:
+```bash
+pipx install vectorcode
+```
+in your shell. To specify a particular version of Python, use the `--python` 
+flag. For example, `pipx install vectorcode --python python3.11`.
 
 > [!NOTE] 
 > The command only install VectorCode and `SentenceTransformer`, the default
@@ -50,12 +53,13 @@ pipx install git+https://github.com/Davidyz/VectorCode
 
 ### Chromadb
 [Chromadb](https://www.trychroma.com/) is the vector database used by VectorCode
-to store and retrieve the code embeddings. It is generally not necessary to 
+to store and retrieve the code embeddings. It is not necessary to 
 install Chromadb itself as a stand-alone application because it's already 
 bundled with VectorCode as a dependency, but having a Chromadb host running in
-the background may help with the performance because it reduces the IO overhead.
-You may consult Chromadb documentation to find out more about how to set up a
-local Chromadb server.
+the background help with the performance because it reduces the IO overhead, so
+it is recommended that you keep a Chromadb service in the background (with
+docker or Systemd service). You may consult Chromadb documentation to find out 
+more about how to do this.
 
 ## Getting Started
 
@@ -91,7 +95,10 @@ function or after an upgrade with breaking changes), use
 vectorcode drop
 ```
 
-## Configuration Options
+To see a full list of CLI options and tricks to optimise the retrieval, keep 
+reading or use the `--help` flag.
+
+## Advanced Usage
 ### Initialising a Project
 For each project, VectorCode creates a collection (similar to tables in
 traditional databases) and puts the code embeddings in the corresponsing
