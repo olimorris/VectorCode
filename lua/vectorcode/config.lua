@@ -29,6 +29,9 @@ return {
           vim.log.levels.INFO,
           notify_opts
         )
+      elseif args.fargs[1] == "deregister" then
+        local buf_nr = vim.api.nvim_get_current_buf()
+        require("vectorcode.cacher").deregister_buffer(buf_nr, { notify = true })
       else
         vim.notify(
           ([[Command "VectorCode %s" was not recognised.]]):format(args.args),

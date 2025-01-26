@@ -44,6 +44,10 @@ local function async_runner(query_message, buf_nr)
     args = args,
     on_start = function() end,
     on_exit = function(self, code, signal)
+      if not M.buf_is_registered(buf_nr) then
+        return
+      end
+
       vim.schedule(function()
         ---@type VectorCodeCache
         local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
@@ -163,6 +167,32 @@ function M.register_buffer(bufnr, opts, query_cb, events, debounce)
       buffer = bufnr,
     })
   end)
+end
+
+---@param bufnr integer?
+---@param opts VectorCodeConfig?
+function M.deregister_buffer(bufnr, opts)
+  opts = opts or vc_config.get_user_config()
+  if bufnr == nil or bufnr == 0 then
+    bufnr = vim.api.nvim_get_current_buf()
+  end
+  if M.buf_is_registered(bufnr) then
+    vim.api.nvim_del_augroup_by_name(("VectorCodeCacheGroup%d"):format(bufnr))
+    vim.api.nvim_buf_set_var(bufnr, "vectorcode_cache", nil)
+    if opts.notify then
+      vim.notify(
+        ("VectorCode Caching has been unregistered for buffer %d."):format(bufnr),
+        vim.log.levels.INFO,
+        notify_opts
+      )
+    end
+  else
+    vim.notify(
+      ("VectorCode Caching hasn't been registered for buffer %d."):format(bufnr),
+      vim.log.levels.ERROR,
+      notify_opts
+    )
+  end
 end
 
 ---@param bufnr integer?

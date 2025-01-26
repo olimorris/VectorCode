@@ -26,6 +26,7 @@
     * [`buf_is_registered(bufnr?)`](#buf_is_registeredbufnr)
 * [User Command](#user-command)
   * [`VectorCode register`](#vectorcode-register)
+  * [`VectorCode deregister`](#vectorcode-deregister)
 
 <!-- mtoc-end -->
 
@@ -303,3 +304,7 @@ Return value: `true` if registered, `false` otherwise.
 ### `VectorCode register`
 
 Register the current buffer for async caching.
+
+### `VectorCode deregister`
+Deregister the current buffer. Any running jobs will continue to run, but no
+further jobs will be scheduled.
