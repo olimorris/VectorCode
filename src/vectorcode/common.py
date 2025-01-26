@@ -10,6 +10,7 @@ import aiohttp
 import chromadb
 import httpx
 from chromadb.api import AsyncClientAPI
+from chromadb.api.models.AsyncCollection import AsyncCollection
 from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
@@ -143,7 +144,7 @@ async def make_or_get_collection(client: AsyncClientAPI, configs: Config):
     return collection
 
 
-def verify_ef(collection, configs: Config):
+def verify_ef(collection: AsyncCollection, configs: Config):
     collection_ef = collection.metadata.get("embedding_function")
     collection_ep = collection.metadata.get("embedding_params")
     if collection_ef and collection_ef != configs.embedding_function:
