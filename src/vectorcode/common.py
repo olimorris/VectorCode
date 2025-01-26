@@ -44,7 +44,7 @@ async def wait_for_server(host, port, timeout=10):
             await asyncio.sleep(0.1)  # Wait before retrying
 
 
-def start_server(configs: Config):
+async def start_server(configs: Config):
     assert configs.host is not None
     assert configs.port is not None
     assert configs.db_path is not None
@@ -72,7 +72,7 @@ def start_server(configs: Config):
         stderr=sys.stderr,
         preexec_fn=os.setsid,
     )
-    asyncio.run(wait_for_server(configs.host, configs.port))
+    await wait_for_server(configs.host, configs.port)
     return process
 
 

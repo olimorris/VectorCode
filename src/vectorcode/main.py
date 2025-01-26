@@ -40,7 +40,7 @@ async def async_main():
 
     server_process = None
     if not try_server(final_configs.host, final_configs.port):
-        server_process = start_server(final_configs)
+        server_process = await start_server(final_configs)
 
     if final_configs.pipe:
         # NOTE: NNCF (intel GPU acceleration for sentence transformer) keeps showing logs.
