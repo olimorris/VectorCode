@@ -27,7 +27,11 @@ def get_uuid() -> str:
 
 async def vectorise(configs: Config) -> int:
     client = await get_client(configs)
-    collection = await make_or_get_collection(client, configs)
+    try:
+        collection = await make_or_get_collection(client, configs)
+    except IndexError:
+        print("Failed to get/create the collection. Please check your config.")
+        return 1
     if not verify_ef(collection, configs):
         return 1
     files = await expand_globs(configs.files or [], recursive=configs.recursive)

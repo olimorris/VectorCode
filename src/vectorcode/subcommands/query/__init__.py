@@ -25,10 +25,21 @@ async def query(configs: Config) -> int:
         if not verify_ef(collection, configs):
             return 1
     except (ValueError, InvalidCollectionException):
-        print(f"There's no existing collection for {configs.project_root}")
+        print(
+            f"There's no existing collection for {configs.project_root}",
+            file=sys.stderr,
+        )
         return 1
     except InvalidDimensionException:
-        print("The collection was embedded with a different embedding model.")
+        print(
+            "The collection was embedded with a different embedding model.",
+            file=sys.stderr,
+        )
+        return 1
+    except IndexError:
+        print(
+            "Failed to get the collection. Please check your config.", file=sys.stderr
+        )
         return 1
 
     if not configs.pipe:
