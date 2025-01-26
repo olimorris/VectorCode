@@ -39,7 +39,16 @@ return {
           notify_opts
         )
       end
-    end, { nargs = 1 })
+    end, {
+      nargs = 1,
+      complete = function(arglead, cmd, cursorpos)
+        if require("vectorcode.cacher").buf_is_registered(0) then
+          return { "register", "deregister" }
+        else
+          return { "register" }
+        end
+      end,
+    })
   end,
 
   get_user_config = function()
