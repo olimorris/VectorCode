@@ -54,6 +54,8 @@ async def start_server(configs: Config):
             f"Creating database at {os.path.expanduser('~/.local/share/vectorcode/chromadb/')}.",
             file=sys.stderr,
         )
+    env = os.environ.copy()
+    env.update({"ANONYMIZED_TELEMETRY": "False"})
     process = subprocess.Popen(
         [
             sys.executable,
@@ -72,7 +74,9 @@ async def start_server(configs: Config):
         stdout=subprocess.DEVNULL,
         stderr=sys.stderr,
         preexec_fn=os.setsid,
+        env=env,
     )
+
     await wait_for_server(configs.host, configs.port)
     return process
 
