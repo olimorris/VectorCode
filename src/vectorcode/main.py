@@ -1,7 +1,7 @@
 import asyncio
+import atexit
 import logging
 import os
-import signal
 from pathlib import Path
 
 from vectorcode import __version__
@@ -42,6 +42,12 @@ async def async_main():
     if not try_server(final_configs.host, final_configs.port):
         server_process = await start_server(final_configs)
 
+        def terminate():
+            server_process.terminate()
+            server_process.wait()
+
+        atexit.register(terminate)
+
     if final_configs.pipe:
         # NOTE: NNCF (intel GPU acceleration for sentence transformer) keeps showing logs.
         # This disables logs below ERROR so that it doesn't hurt the `pipe` output.
@@ -66,11 +72,6 @@ async def async_main():
     except Exception:
         return_val = 1
     finally:
-        if server_process is not None:
-            try:
-                os.killpg(os.getpgid(server_process.pid), signal.SIGTERM)
-            except ProcessLookupError:
-                pass
         return return_val
 
 
