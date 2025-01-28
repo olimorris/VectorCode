@@ -10,12 +10,13 @@
 * [Advanced Usage](#advanced-usage)
   * [Initialising a Project](#initialising-a-project)
   * [Configuring VectorCode](#configuring-vectorcode)
-* [Vectorising Your Code](#vectorising-your-code)
-* [Making a Query](#making-a-query)
-* [Listing All Collections](#listing-all-collections)
-* [Removing a Collection](#removing-a-collection)
-* [Checking Project Setup](#checking-project-setup)
+  * [Vectorising Your Code](#vectorising-your-code)
+  * [Making a Query](#making-a-query)
+  * [Listing All Collections](#listing-all-collections)
+  * [Removing a Collection](#removing-a-collection)
+  * [Checking Project Setup](#checking-project-setup)
 * [Shell Completion](#shell-completion)
+* [Hardware Acceleration](#hardware-acceleration)
 * [For Developers](#for-developers)
   * [`vectorcode query`](#vectorcode-query)
   * [`vectorcode vectorise`](#vectorcode-vectorise)
@@ -35,7 +36,8 @@ After installing `pipx`, run:
 pipx install vectorcode
 ```
 in your shell. To specify a particular version of Python, use the `--python` 
-flag. For example, `pipx install vectorcode --python python3.11`.
+flag. For example, `pipx install vectorcode --python python3.11`. For hardware
+accelerated embedding, refer to [the relevant section](#hardware-acceleration).
 
 > [!NOTE] 
 > The command only install VectorCode and `SentenceTransformer`, the default
@@ -164,7 +166,7 @@ The JSON configuration file may hold the following values:
   for Chromadb client settings so that you can configure 
   [authentication for remote Chromadb](https://docs.trychroma.com/production/administration/auth).
 
-## Vectorising Your Code
+### Vectorising Your Code
 
 Run `vectorcode vectorise <path_to_your_file>` or `vectorcode vectorise
 <directory> -r`. There are a few extra tweaks you may use:
@@ -190,7 +192,7 @@ This command also respects `.gitignore`. It by default skips files in
 `.gitignore`. To override this, run the `vectorise` command with `-f`/`--force`
 flag.
 
-## Making a Query
+### Making a Query
 
 To retrieve a list of documents from the database, you can use the following command:
 ```bash 
@@ -219,7 +221,7 @@ ratio because when the query message is too long it might be necessary to chunk
 it. The parameters follow the same syntax as in `vectorise` command.
 
 
-## Listing All Collections
+### Listing All Collections
 
 You can use `vectorcode ls` command to list all collections in your Chromadb.
 This is useful if you want to check whether the collection has been created for
@@ -229,13 +231,13 @@ the current project or not. The output will be a table with 4 columns:
 - Number of Files: number of files that have been indexed;
 - Embedding Function: name of embedding function used for this collection.
 
-## Removing a Collection
+### Removing a Collection
 
 You can use `vectorcode drop` command to remove a collection from Chromadb. This
 is useful if you want to clean up your Chromadb database, or if the project has 
 been deleted, and you don't need its embeddings any more. 
 
-## Checking Project Setup
+### Checking Project Setup
 You may run `vectorcode check` command to check whether VectorCode is properly 
 installed and configured for your project. This currently supports only 1 check:
 
@@ -250,6 +252,28 @@ some_message` and then getting an empty results.
 VectorCode supports shell completion for bash/zsh/tcsh. You can use `vectorcode -s {bash,zsh,tcsh}`
 or `vectorcode --print-completion {bash,zsh,tcsh}` to print the completion script
 for your shell of choice.
+
+## Hardware Acceleration
+> This setion covers hardware acceleration when using sentence transformer as
+> the embedding backend.
+
+For Nvidia users this should work out of the box.
+
+For Intel users, [sentence transformer](https://www.sbert.net/index.html)
+supports [OpenVINO](https://www.intel.com/content/www/us/en/developer/tools/openvino-toolkit/overview.html) 
+backend for supported GPU. Run `pipx install vectorcode[intel]` which will 
+bundle the relevant libraries when you install VectorCode. After that, you will
+need to configure `SentenceTransformer` to use `openvino` backend. In your
+`config.json`, set `backend` key in `embedding_params` to `"openvino"`:
+```json 
+{
+  "embedding_params": {
+    "backend": "openvino",
+  },
+}
+```
+This will run the embedding model on your GPU. This is supported even for
+some integrated GPUs.
 
 ## For Developers
 To develop a tool that makes use of VectorCode, you may find the `--pipe`/`-p`
