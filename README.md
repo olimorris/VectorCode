@@ -21,6 +21,7 @@ neovim plugin because that's what I used to write this tool.
 * [Why VectorCode?](#why-vectorcode)
 * [Documentation](#documentation)
 * [TODOs](#todos)
+* [Credit](#credit)
 
 <!-- mtoc-end -->
 
@@ -63,3 +64,7 @@ and chat plugin available on VSCode and JetBrain products.
 - [x] implement some sort of project-root anchors (such as `.git` or a custom
   `.vectorcode.json`) that enhances automatic project-root detection.
   **Implemented project-level `.vectorcode/config.json` as root anchor**
+
+## Credit
+
+- Thank [@milanglacier](https://github.com/milanglacier) (and [minuet-ai.nvim](https://github.com/milanglacier/minuet-ai.nvim)) for the support when this project was still in early stage.
