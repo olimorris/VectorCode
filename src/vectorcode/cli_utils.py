@@ -276,10 +276,12 @@ async def load_config_file(path: Optional[PathLike] = None):
 async def find_project_config_dir(start_from: PathLike = "."):
     """Returns the project-local config directory."""
     current_dir = Path(start_from).resolve()
+    project_root_anchors = [".vectorcode", ".git"]
     while current_dir:
-        to_be_checked = os.path.join(current_dir, ".vectorcode/")
-        if os.path.isdir(to_be_checked):
-            return to_be_checked
+        for anchor in project_root_anchors:
+            to_be_checked = os.path.join(current_dir, anchor)
+            if os.path.isdir(to_be_checked):
+                return to_be_checked
         parent = current_dir.parent
         if parent.resolve() == current_dir:
             return
