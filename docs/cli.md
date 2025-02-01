@@ -192,6 +192,9 @@ This command also respects `.gitignore`. It by default skips files in
 `.gitignore`. To override this, run the `vectorise` command with `-f`/`--force`
 flag.
 
+There's also a `update` subcommand, which updates the embedding for all the indexed 
+files and remove the embeddings for files that no longer exist.
+
 ### Making a Query
 
 To retrieve a list of documents from the database, you can use the following command:

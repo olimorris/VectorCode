@@ -1,0 +1,69 @@
+import asyncio
+import os
+import sys
+from asyncio import Lock
+
+import tqdm
+from chromadb.api.types import IncludeEnum
+
+from vectorcode.cli_utils import Config
+from vectorcode.common import get_client, make_or_get_collection, verify_ef
+from vectorcode.subcommands.vectorise import chunked_add, show_stats
+
+
+async def update(configs: Config) -> int:
+    client = await get_client(configs)
+    try:
+        collection = await make_or_get_collection(client, configs)
+    except IndexError:
+        print("Failed to get/create the collection. Please check your config.")
+        return 1
+    if not verify_ef(collection, configs):
+        return 1
+
+    metas = (await collection.get(include=[IncludeEnum.metadatas]))["metadatas"]
+    if metas is None:
+        return 0
+    files_gen = (str(meta.get("path", "")) for meta in metas)
+    files = set()
+    orphanes = set()
+    for file in files_gen:
+        if os.path.isfile(file):
+            files.add(file)
+        else:
+            orphanes.add(file)
+
+    stats = {"add": 0, "update": 0, "removed": len(orphanes)}
+    collection_lock = Lock()
+    stats_lock = Lock()
+    max_batch_size = await client.get_max_batch_size()
+
+    with tqdm.tqdm(
+        total=len(files), desc="Vectorising files...", disable=configs.pipe
+    ) as bar:
+        try:
+            tasks = [
+                asyncio.create_task(
+                    chunked_add(
+                        str(file),
+                        collection,
+                        collection_lock,
+                        stats,
+                        stats_lock,
+                        configs,
+                        max_batch_size,
+                    )
+                )
+                for file in files
+            ]
+            for task in asyncio.as_completed(tasks):
+                await task
+                bar.update(1)
+        except asyncio.CancelledError:
+            print("Abort.", file=sys.stderr)
+            return 1
+
+    await collection.delete(where={"path": {"$in": list(orphanes)}})
+
+    show_stats(configs, stats)
+    return 0

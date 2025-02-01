@@ -29,6 +29,7 @@ class CliAction(Enum):
     init = "init"
     version = "version"
     check = "check"
+    update = "update"
 
 
 @dataclass
@@ -200,6 +201,12 @@ async def cli_arg_parser():
         choices=CHECK_OPTIONS,
         type=str,
         help=f"Item to be checked. Possible options: [{', '.join(CHECK_OPTIONS)}]",
+    )
+
+    subparsers.add_parser(
+        "update",
+        parents=[shared_parser],
+        help="Update embeddings in the database for indexed files.",
     )
 
     main_args = main_parser.parse_args()

@@ -12,7 +12,7 @@ from vectorcode.cli_utils import (
     load_config_file,
 )
 from vectorcode.common import start_server, try_server
-from vectorcode.subcommands import check, drop, init, ls, query, vectorise
+from vectorcode.subcommands import check, drop, init, ls, query, update, vectorise
 
 
 async def async_main():
@@ -68,6 +68,8 @@ async def async_main():
                 return_val = await ls(final_configs)
             case CliAction.init:
                 return_val = await init(final_configs)
+            case CliAction.update:
+                return_val = await update(final_configs)
             case CliAction.version:
                 print(__version__)
                 return_val = 0

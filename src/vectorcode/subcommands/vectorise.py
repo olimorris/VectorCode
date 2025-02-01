@@ -65,6 +65,21 @@ async def chunked_add(
                 )
 
 
+def show_stats(configs: Config, stats):
+    if configs.pipe:
+        print(json.dumps(stats))
+    else:
+        print(
+            tabulate.tabulate(
+                [
+                    ["Added", "Updated", "Removed"],
+                    [stats["add"], stats["update"], stats["removed"]],
+                ],
+                headers="firstrow",
+            )
+        )
+
+
 async def vectorise(configs: Config) -> int:
     client = await get_client(configs)
     try:
@@ -125,16 +140,5 @@ async def vectorise(configs: Config) -> int:
                 await collection.delete(where={"path": path_in_meta})
                 stats["removed"] += 1
 
-    if configs.pipe:
-        print(json.dumps(stats))
-    else:
-        print(
-            tabulate.tabulate(
-                [
-                    ["Added", "Updated", "Removed"],
-                    [stats["add"], stats["update"], stats["removed"]],
-                ],
-                headers="firstrow",
-            )
-        )
+    show_stats(configs=configs, stats=stats)
     return 0
