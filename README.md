@@ -63,7 +63,7 @@ and chat plugin available on VSCode and JetBrain products.
 - [x] respect `.gitignore`;
 - [x] implement some sort of project-root anchors (such as `.git` or a custom
   `.vectorcode.json`) that enhances automatic project-root detection.
-  **Implemented project-level `.vectorcode/config.json` as root anchor**
+  **Implemented project-level `.vectorcode/` and `.git` as root anchor**
 
 ## Credit
 

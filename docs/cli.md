@@ -115,10 +115,10 @@ project-specific settings such as embedding functions and database entry point
 project-local config file is present, the global configuration file is ignored
 to avoid confusion. 
 
-If you skip `vectorcode init`, VectorCode may still work but you have to make sure 
-that you run any `vectorcode` command in the directory where you vectorised your 
-code, because VectorCode defaults to the current working directory as the path to 
-the embedding collection.
+If you skip `vectorcode init`, VectorCode will look for a directory that
+contains `.git/` subdirectory and use it as the _project root_. In this case, the
+default global configuration will be used. If `.git/` does not exist, VectorCode
+falls back to using the current working directory as the _project root_.
 
 ### Configuring VectorCode
 The JSON configuration file may hold the following values:
