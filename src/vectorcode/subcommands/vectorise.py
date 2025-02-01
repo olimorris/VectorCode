@@ -55,6 +55,7 @@ async def chunked_add(
             stats["add"] += 1
     with open(full_path_str) as fin:
         chunks = list(FileChunker(configs.chunk_size, configs.overlap_ratio).chunk(fin))
+        chunks.append(str(os.path.relpath(full_path_str, configs.project_root)))
         async with collection_lock:
             for idx in range(0, len(chunks), max_batch_size):
                 inserted_chunks = chunks[idx : idx + max_batch_size]
