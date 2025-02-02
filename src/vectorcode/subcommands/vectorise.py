@@ -133,13 +133,18 @@ async def vectorise(configs: Config) -> int:
             print("Abort.", file=sys.stderr)
             return 1
 
-    all_results = await collection.get(include=[IncludeEnum.metadatas])
-    if all_results is not None and all_results.get("metadatas"):
-        for idx in range(len(all_results["ids"])):
-            path_in_meta = str(all_results["metadatas"][idx].get("path"))
-            if path_in_meta is not None and not os.path.isfile(path_in_meta):
-                await collection.delete(where={"path": path_in_meta})
-                stats["removed"] += 1
+    async with collection_lock:
+        all_results = await collection.get(include=[IncludeEnum.metadatas])
+        if all_results is not None and all_results.get("metadatas"):
+            paths = (meta["path"] for meta in all_results["metadatas"])
+            orphanes = set()
+            for path in paths:
+                if isinstance(path, str) and not os.path.isfile(path):
+                    orphanes.add(path)
+            async with stats_lock:
+                stats["removed"] = len(orphanes)
+            if len(orphanes):
+                await collection.delete(where={"path": {"$in": list(orphanes)}})
 
     show_stats(configs=configs, stats=stats)
     return 0
