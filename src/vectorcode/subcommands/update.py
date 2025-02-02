@@ -63,7 +63,8 @@ async def update(configs: Config) -> int:
             print("Abort.", file=sys.stderr)
             return 1
 
-    await collection.delete(where={"path": {"$in": list(orphanes)}})
+    if len(orphanes):
+        await collection.delete(where={"path": {"$in": list(orphanes)}})
 
     show_stats(configs, stats)
     return 0

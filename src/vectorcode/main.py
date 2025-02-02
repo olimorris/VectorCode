@@ -2,6 +2,8 @@ import asyncio
 import atexit
 import logging
 import os
+import sys
+import traceback
 from pathlib import Path
 
 from vectorcode import __version__
@@ -73,8 +75,9 @@ async def async_main():
             case CliAction.version:
                 print(__version__)
                 return_val = 0
-    except Exception:
+    except Exception as e:
         return_val = 1
+        traceback.print_exception(e, file=sys.stderr)
     finally:
         return return_val
 
