@@ -5,16 +5,9 @@ local notify_opts = vc_config.notify_opts
 ---@class VectorCodeCache
 ---@field enabled boolean
 ---@field retrieval VectorCodeResult[]?
----@field options VectorCodeConfig
----@field query_cb fun(buf_number: integer): string
+---@field options VectorCodeRegisterOpts
 ---@field jobs table<integer, boolean>
 ---@field last_run integer?
-local default_vectorcode_cache = {
-  enabled = true,
-  retrieval = {},
-  options = vc_config.get_user_config(),
-  jobs = {},
-}
 
 ---@param query_message string|string[]
 ---@param buf_nr integer
@@ -103,13 +96,41 @@ local function async_runner(query_message, buf_nr)
   end)
 end
 
+---@class VectorCodeRegisterOpts: VectorCodeConfig
+---@field query_cb VectorCodeQueryCallback
+---@field events string|string[]|nil
+---@field debounce integer?
+
 ---@param bufnr integer?
----@param opts VectorCodeConfig?
+---@param opts VectorCodeRegisterOpts?
 ---@param query_cb VectorCodeQueryCallback?
 ---@param events string[]?
 ---@param debounce integer?
 function M.register_buffer(bufnr, opts, query_cb, events, debounce)
-  debounce = debounce or 10
+  if query_cb ~= nil or events ~= nil or debounce ~= nil then
+    vim.schedule(function()
+      vim.notify(
+        "The function signature for `vectorcode.cacher.register_buffer` has changed.\nYour current config will soon be invalid.\nPlease update your config.",
+        vim.log.levels.WARN,
+        notify_opts
+      )
+    end)
+  end
+  opts = vim.tbl_deep_extend(
+    "force",
+    {
+      query_cb = require("vectorcode.utils").surrounding_lines_cb(-1),
+      events = { "BufWritePost", "InsertEnter", "BufReadPost" },
+      debounce = 10,
+      n_query = 1,
+      notify = false,
+      timeout_ms = 5000,
+      exclude_this = true,
+    },
+    opts or vc_config.get_user_config(),
+    { query_cb = query_cb, events = events, debounce = debounce }
+  )
+
   if bufnr == 0 or bufnr == nil then
     bufnr = vim.api.nvim_get_current_buf()
   end
@@ -118,9 +139,6 @@ function M.register_buffer(bufnr, opts, query_cb, events, debounce)
     vim.schedule(function()
       local cache = vim.b[bufnr].vectorcode_cache
       cache.options = vim.tbl_deep_extend("force", cache.options, opts or {})
-      if type(query_cb) == "function" then
-        cache.query_cb = query_cb
-      end
       vim.api.nvim_buf_set_var(
         bufnr or vim.api.nvim_get_current_buf(),
         "vectorcode_cache",
@@ -128,22 +146,18 @@ function M.register_buffer(bufnr, opts, query_cb, events, debounce)
       )
     end)
   else
-    query_cb = query_cb or require("vectorcode.utils").surrounding_lines_cb(-1)
-    opts = vim.tbl_deep_extend("keep", opts or {}, vc_config.get_user_config())
     vim.schedule(function()
       ---@type VectorCodeCache
       vim.api.nvim_buf_set_var(bufnr, "vectorcode_cache", {
         enabled = true,
         retrieval = nil,
         options = opts,
-        query_cb = query_cb,
         jobs = {},
       })
     end)
   end
-  events = events or { "BufWritePost", "InsertEnter", "BufReadPost" }
   vim.schedule(function()
-    vim.api.nvim_create_autocmd(events, {
+    vim.api.nvim_create_autocmd(opts.events, {
       group = vim.api.nvim_create_augroup(
         ("VectorCodeCacheGroup%d"):format(bufnr),
         { clear = true }
@@ -157,9 +171,9 @@ function M.register_buffer(bufnr, opts, query_cb, events, debounce)
           local cache = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache") ---@cast cache VectorCodeCache
           if
             cache.last_run == nil
-            or (vim.uv.clock_gettime("realtime").sec - cache.last_run) > debounce
+            or (vim.uv.clock_gettime("realtime").sec - cache.last_run) > opts.debounce
           then
-            local cb = cache.query_cb
+            local cb = cache.options.query_cb
             async_runner(cb(bufnr), bufnr)
           end
         end)
@@ -170,9 +184,9 @@ function M.register_buffer(bufnr, opts, query_cb, events, debounce)
 end
 
 ---@param bufnr integer?
----@param opts VectorCodeConfig?
+---@param opts {notify:boolean}
 function M.deregister_buffer(bufnr, opts)
-  opts = opts or vc_config.get_user_config()
+  opts = opts or { notify = false }
   if bufnr == nil or bufnr == 0 then
     bufnr = vim.api.nvim_get_current_buf()
   end

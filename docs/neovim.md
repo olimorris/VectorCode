@@ -236,7 +236,7 @@ take too long and block the main thread.
 This function registers a buffer to be cached by VectorCode.
 
 ```lua
-require("vectorcode").register_buffer({
+require("vectorcode.cacher").register_buffer(0, {
     n_query = 1,
 })
 ```
@@ -246,6 +246,8 @@ The following are the available options for this function:
 - `opts`: same as the `setup` function above. This API will create an autocommand 
   that triggers a query when you write to the file, enter insert mode or read from 
   the file;
+The following options are also available for `register_buffer`, but will soon be
+merged into `opts`:
 - `query_cb`: a callback function that takes the buffer number as the only
   argument and returns the query message. Some examples are bundled in the
   plugin, accessible in `require("vectorcode.utils")` Default: 
