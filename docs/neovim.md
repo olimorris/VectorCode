@@ -12,6 +12,9 @@
 
 * [Installation](#installation)
 * [Quick Start](#quick-start)
+* [User Command](#user-command)
+  * [`VectorCode register`](#vectorcode-register)
+  * [`VectorCode deregister`](#vectorcode-deregister)
 * [Configuration](#configuration)
   * [`setup(opts?)`](#setupopts)
 * [API Usage](#api-usage)
@@ -24,9 +27,6 @@
     * [`lualine()`](#lualine)
     * [`async_check(check_item?, on_success?, on_failure?)`](#async_checkcheck_item-on_success-on_failure)
     * [`buf_is_registered(bufnr?)`](#buf_is_registeredbufnr)
-* [User Command](#user-command)
-  * [`VectorCode register`](#vectorcode-register)
-  * [`VectorCode deregister`](#vectorcode-deregister)
 
 <!-- mtoc-end -->
 
@@ -36,7 +36,7 @@ Use your favourite plugin manager.
 ```lua 
 {
   "Davidyz/VectorCode",
-  version = "*",
+  version = "*", -- optional, depending on whether you're on nightly or release
   dependencies = { "nvim-lua/plenary.nvim" },
 }
 ```
@@ -53,6 +53,19 @@ To ensure maximum compatibility, please either:
 
 2. Use the latest commit for the neovim plugin with VectorCode installed from
    the latest GitHub commit.
+
+It may be helpful to use a `build` hook to automatically upgrade the CLI when
+the neovim plugin updates. For example, if you're using lazy.nvim and `pipx`,
+you can use the following plugin spec:
+
+```lua
+{
+  "Davidyz/VectorCode",
+  version = "*", -- optional, depending on whether you're on nightly or release
+  build = "pipx upgrade vectorcode",
+  dependencies = { "nvim-lua/plenary.nvim" },
+}
+```
 
 ## Quick Start
 
@@ -127,6 +140,16 @@ vim.api.nvim_create_autocmd("LspAttach", {
 })
 ```
 to automatically register a new buffer.
+
+## User Command
+### `VectorCode register`
+
+Register the current buffer for async caching.
+
+### `VectorCode deregister`
+
+Deregister the current buffer. Any running jobs will continue to run, but no
+further jobs will be scheduled.
 
 ## Configuration
 
@@ -304,12 +327,3 @@ require("vectorcode.cacher").buf_is_registered()
 The following are the available options for this function:
 - `bufnr`: buffer number. Default: current buffer.
 Return value: `true` if registered, `false` otherwise.
-
-## User Command
-### `VectorCode register`
-
-Register the current buffer for async caching.
-
-### `VectorCode deregister`
-Deregister the current buffer. Any running jobs will continue to run, but no
-further jobs will be scheduled.
