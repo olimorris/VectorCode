@@ -101,12 +101,12 @@ end
 ---@field events string|string[]|nil
 ---@field debounce integer?
 
----@param bufnr integer?
----@param opts VectorCodeRegisterOpts?
----@param query_cb VectorCodeQueryCallback?
----@param events string[]?
----@param debounce integer?
 M.register_buffer = vc_config.check_cli_wrap(
+  ---@param bufnr integer?
+  ---@param opts VectorCodeRegisterOpts?
+  ---@param query_cb VectorCodeQueryCallback?
+  ---@param events string[]?
+  ---@param debounce integer?
   function(bufnr, opts, query_cb, events, debounce)
     if query_cb ~= nil or events ~= nil or debounce ~= nil then
       vim.schedule(function()
@@ -186,31 +186,33 @@ M.register_buffer = vc_config.check_cli_wrap(
   end
 )
 
----@param bufnr integer?
----@param opts {notify:boolean}
-M.deregister_buffer = vc_config.check_cli_wrap(function(bufnr, opts)
-  opts = opts or { notify = false }
-  if bufnr == nil or bufnr == 0 then
-    bufnr = vim.api.nvim_get_current_buf()
-  end
-  if M.buf_is_registered(bufnr) then
-    vim.api.nvim_del_augroup_by_name(("VectorCodeCacheGroup%d"):format(bufnr))
-    vim.api.nvim_buf_set_var(bufnr, "vectorcode_cache", nil)
-    if opts.notify then
+M.deregister_buffer = vc_config.check_cli_wrap(
+  ---@param bufnr integer?
+  ---@param opts {notify:boolean}
+  function(bufnr, opts)
+    opts = opts or { notify = false }
+    if bufnr == nil or bufnr == 0 then
+      bufnr = vim.api.nvim_get_current_buf()
+    end
+    if M.buf_is_registered(bufnr) then
+      vim.api.nvim_del_augroup_by_name(("VectorCodeCacheGroup%d"):format(bufnr))
+      vim.api.nvim_buf_set_var(bufnr, "vectorcode_cache", nil)
+      if opts.notify then
+        vim.notify(
+          ("VectorCode Caching has been unregistered for buffer %d."):format(bufnr),
+          vim.log.levels.INFO,
+          notify_opts
+        )
+      end
+    else
       vim.notify(
-        ("VectorCode Caching has been unregistered for buffer %d."):format(bufnr),
-        vim.log.levels.INFO,
+        ("VectorCode Caching hasn't been registered for buffer %d."):format(bufnr),
+        vim.log.levels.ERROR,
         notify_opts
       )
     end
-  else
-    vim.notify(
-      ("VectorCode Caching hasn't been registered for buffer %d."):format(bufnr),
-      vim.log.levels.ERROR,
-      notify_opts
-    )
   end
-end)
+)
 
 ---@param bufnr integer?
 ---@return boolean
@@ -221,27 +223,29 @@ M.buf_is_registered = function(bufnr)
   return type(vim.b[bufnr].vectorcode_cache) == "table"
 end
 
----@param bufnr integer?
----@return VectorCodeResult[]
-M.query_from_cache = vc_config.check_cli_wrap(function(bufnr)
-  local result = {}
-  if bufnr == 0 or bufnr == nil then
-    bufnr = vim.api.nvim_get_current_buf()
-  end
-  if M.buf_is_registered(bufnr) then
-    ---@type VectorCodeCache
-    local vectorcode_cache = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache")
-    result = vectorcode_cache.retrieval or {}
-    if vectorcode_cache.options.notify then
-      vim.notify(
-        ("Retrieved %d documents from cache."):format(#result),
-        vim.log.levels.INFO,
-        notify_opts
-      )
+M.query_from_cache = vc_config.check_cli_wrap(
+  ---@param bufnr integer?
+  ---@return VectorCodeResult[]
+  function(bufnr)
+    local result = {}
+    if bufnr == 0 or bufnr == nil then
+      bufnr = vim.api.nvim_get_current_buf()
     end
+    if M.buf_is_registered(bufnr) then
+      ---@type VectorCodeCache
+      local vectorcode_cache = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache")
+      result = vectorcode_cache.retrieval or {}
+      if vectorcode_cache.options.notify then
+        vim.notify(
+          ("Retrieved %d documents from cache."):format(#result),
+          vim.log.levels.INFO,
+          notify_opts
+        )
+      end
+    end
+    return result
   end
-  return result
-end)
+)
 
 function M.lualine()
   return {

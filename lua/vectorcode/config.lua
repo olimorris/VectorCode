@@ -23,6 +23,9 @@ local has_cli = function(opts)
   return ok
 end
 
+---@generic T: function
+---@param func T
+---@return T
 local check_cli_wrap = function(func)
   if not has_cli() then
     vim.notify("VectorCode CLI is not executable!", vim.log.levels.ERROR, notify_opts)
@@ -34,39 +37,41 @@ return {
     return vim.deepcopy(config, true)
   end,
 
-  ---@param opts VectorCodeConfig?
-  setup = check_cli_wrap(function(opts)
-    setup_config = vim.tbl_deep_extend("force", config, opts or {})
-    vim.api.nvim_create_user_command("VectorCode", function(args)
-      if args.fargs[1] == "register" then
-        local bufnr = vim.api.nvim_get_current_buf()
-        require("vectorcode.cacher").register_buffer(bufnr)
-        vim.notify(
-          ("Buffer %d has been registered for VectorCode."):format(bufnr),
-          vim.log.levels.INFO,
-          notify_opts
-        )
-      elseif args.fargs[1] == "deregister" then
-        local buf_nr = vim.api.nvim_get_current_buf()
-        require("vectorcode.cacher").deregister_buffer(buf_nr, { notify = true })
-      else
-        vim.notify(
-          ([[Command "VectorCode %s" was not recognised.]]):format(args.args),
-          vim.log.levels.ERROR,
-          notify_opts
-        )
-      end
-    end, {
-      nargs = 1,
-      complete = function(arglead, cmd, cursorpos)
-        if require("vectorcode.cacher").buf_is_registered(0) then
-          return { "register", "deregister" }
+  setup = check_cli_wrap(
+    ---@param opts VectorCodeConfig?
+    function(opts)
+      setup_config = vim.tbl_deep_extend("force", config, opts or {})
+      vim.api.nvim_create_user_command("VectorCode", function(args)
+        if args.fargs[1] == "register" then
+          local bufnr = vim.api.nvim_get_current_buf()
+          require("vectorcode.cacher").register_buffer(bufnr)
+          vim.notify(
+            ("Buffer %d has been registered for VectorCode."):format(bufnr),
+            vim.log.levels.INFO,
+            notify_opts
+          )
+        elseif args.fargs[1] == "deregister" then
+          local buf_nr = vim.api.nvim_get_current_buf()
+          require("vectorcode.cacher").deregister_buffer(buf_nr, { notify = true })
         else
-          return { "register" }
+          vim.notify(
+            ([[Command "VectorCode %s" was not recognised.]]):format(args.args),
+            vim.log.levels.ERROR,
+            notify_opts
+          )
         end
-      end,
-    })
-  end),
+      end, {
+        nargs = 1,
+        complete = function(arglead, cmd, cursorpos)
+          if require("vectorcode.cacher").buf_is_registered(0) then
+            return { "register", "deregister" }
+          else
+            return { "register" }
+          end
+        end,
+      })
+    end
+  ),
 
   get_user_config = function()
     return vim.deepcopy(setup_config, true)
