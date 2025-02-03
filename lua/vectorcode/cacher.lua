@@ -106,86 +106,89 @@ end
 ---@param query_cb VectorCodeQueryCallback?
 ---@param events string[]?
 ---@param debounce integer?
-function M.register_buffer(bufnr, opts, query_cb, events, debounce)
-  if query_cb ~= nil or events ~= nil or debounce ~= nil then
-    vim.schedule(function()
-      vim.notify(
-        "The function signature for `vectorcode.cacher.register_buffer` has changed.\nYour current config will soon be invalid.\nPlease update your config.",
-        vim.log.levels.WARN,
-        notify_opts
-      )
-    end)
-  end
-  opts = vim.tbl_deep_extend(
-    "force",
-    {
-      query_cb = require("vectorcode.utils").surrounding_lines_cb(-1),
-      events = { "BufWritePost", "InsertEnter", "BufReadPost" },
-      debounce = 10,
-      n_query = 1,
-      notify = false,
-      timeout_ms = 5000,
-      exclude_this = true,
-    },
-    opts or vc_config.get_user_config(),
-    { query_cb = query_cb, events = events, debounce = debounce }
-  )
+M.register_buffer = vc_config.check_cli_wrap(
+  function(bufnr, opts, query_cb, events, debounce)
+    if query_cb ~= nil or events ~= nil or debounce ~= nil then
+      vim.schedule(function()
+        vim.notify(
+          "The function signature for `vectorcode.cacher.register_buffer` has changed.\nYour current config will soon be invalid.\nPlease update your config.",
+          vim.log.levels.WARN,
+          notify_opts
+        )
+      end)
+    end
+    opts = vim.tbl_deep_extend(
+      "force",
+      {
+        query_cb = require("vectorcode.utils").surrounding_lines_cb(-1),
+        events = { "BufWritePost", "InsertEnter", "BufReadPost" },
+        debounce = 10,
+        n_query = 1,
+        notify = false,
+        timeout_ms = 5000,
+        exclude_this = true,
+      },
+      opts or vc_config.get_user_config(),
+      { query_cb = query_cb, events = events, debounce = debounce }
+    )
 
-  if bufnr == 0 or bufnr == nil then
-    bufnr = vim.api.nvim_get_current_buf()
-  end
-  if M.buf_is_registered(bufnr) then
-    -- update the options and/or query_cb
+    if bufnr == 0 or bufnr == nil then
+      bufnr = vim.api.nvim_get_current_buf()
+    end
+    if M.buf_is_registered(bufnr) then
+      -- update the options and/or query_cb
+      vim.schedule(function()
+        local cache = vim.b[bufnr].vectorcode_cache
+        cache.options = vim.tbl_deep_extend("force", cache.options, opts or {})
+        vim.api.nvim_buf_set_var(
+          bufnr or vim.api.nvim_get_current_buf(),
+          "vectorcode_cache",
+          cache
+        )
+      end)
+    else
+      vim.schedule(function()
+        ---@type VectorCodeCache
+        vim.api.nvim_buf_set_var(bufnr, "vectorcode_cache", {
+          enabled = true,
+          retrieval = nil,
+          options = opts,
+          jobs = {},
+        })
+      end)
+    end
     vim.schedule(function()
-      local cache = vim.b[bufnr].vectorcode_cache
-      cache.options = vim.tbl_deep_extend("force", cache.options, opts or {})
-      vim.api.nvim_buf_set_var(
-        bufnr or vim.api.nvim_get_current_buf(),
-        "vectorcode_cache",
-        cache
-      )
-    end)
-  else
-    vim.schedule(function()
-      ---@type VectorCodeCache
-      vim.api.nvim_buf_set_var(bufnr, "vectorcode_cache", {
-        enabled = true,
-        retrieval = nil,
-        options = opts,
-        jobs = {},
+      vim.api.nvim_create_autocmd(opts.events, {
+        group = vim.api.nvim_create_augroup(
+          ("VectorCodeCacheGroup%d"):format(bufnr),
+          { clear = true }
+        ),
+        callback = function()
+          assert(
+            vim.b[bufnr].vectorcode_cache ~= nil,
+            "buffer vectorcode cache not registered"
+          )
+          vim.schedule(function()
+            local cache = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache") ---@cast cache VectorCodeCache
+            if
+              cache.last_run == nil
+              or (vim.uv.clock_gettime("realtime").sec - cache.last_run)
+                > opts.debounce
+            then
+              local cb = cache.options.query_cb
+              async_runner(cb(bufnr), bufnr)
+            end
+          end)
+        end,
+        buffer = bufnr,
       })
     end)
   end
-  vim.schedule(function()
-    vim.api.nvim_create_autocmd(opts.events, {
-      group = vim.api.nvim_create_augroup(
-        ("VectorCodeCacheGroup%d"):format(bufnr),
-        { clear = true }
-      ),
-      callback = function()
-        assert(
-          vim.b[bufnr].vectorcode_cache ~= nil,
-          "buffer vectorcode cache not registered"
-        )
-        vim.schedule(function()
-          local cache = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache") ---@cast cache VectorCodeCache
-          if
-            cache.last_run == nil
-            or (vim.uv.clock_gettime("realtime").sec - cache.last_run) > opts.debounce
-          then
-            local cb = cache.options.query_cb
-            async_runner(cb(bufnr), bufnr)
-          end
-        end)
-      end,
-      buffer = bufnr,
-    })
-  end)
-end
+)
 
 ---@param bufnr integer?
 ---@param opts {notify:boolean}
-function M.deregister_buffer(bufnr, opts)
+M.deregister_buffer = vc_config.check_cli_wrap(function(bufnr, opts)
   opts = opts or { notify = false }
   if bufnr == nil or bufnr == 0 then
     bufnr = vim.api.nvim_get_current_buf()
@@ -207,7 +210,7 @@ function M.deregister_buffer(bufnr, opts)
       notify_opts
     )
   end
-end
+end)
 
 ---@param bufnr integer?
 ---@return boolean
@@ -220,7 +223,7 @@ end
 
 ---@param bufnr integer?
 ---@return VectorCodeResult[]
-M.query_from_cache = function(bufnr)
+M.query_from_cache = vc_config.check_cli_wrap(function(bufnr)
   local result = {}
   if bufnr == 0 or bufnr == nil then
     bufnr = vim.api.nvim_get_current_buf()
@@ -238,7 +241,7 @@ M.query_from_cache = function(bufnr)
     end
   end
   return result
-end
+end)
 
 function M.lualine()
   return {
@@ -270,6 +273,13 @@ end
 ---@param on_success fun()?
 ---@param on_failure fun()?
 function M.async_check(check_item, on_success, on_failure)
+  if not vc_config.has_cli() then
+    if on_failure ~= nil then
+      on_failure()
+    end
+    return
+  end
+
   check_item = check_item or "config"
   local return_code
   vim.system({ "vectorcode", "check", check_item }, {}, function(out)
@@ -281,4 +291,5 @@ function M.async_check(check_item, on_success, on_failure)
   end)
   return return_code == 0
 end
+
 return M

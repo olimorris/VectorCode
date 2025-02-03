@@ -12,13 +12,30 @@ local config = {
 
 local setup_config = vim.deepcopy(config, true)
 local notify_opts = { title = "VectorCode" }
+
+---@param opts {notify:boolean}?
+local has_cli = function(opts)
+  opts = opts or { notify = false }
+  local ok = vim.fn.executable("vectorcode") == 1
+  if not ok and opts.notify then
+    vim.notify("VectorCode CLI is not executable!", vim.log.levels.ERROR, notify_opts)
+  end
+  return ok
+end
+
+local check_cli_wrap = function(func)
+  if not has_cli() then
+    vim.notify("VectorCode CLI is not executable!", vim.log.levels.ERROR, notify_opts)
+  end
+  return func
+end
 return {
   get_default_config = function()
     return vim.deepcopy(config, true)
   end,
 
   ---@param opts VectorCodeConfig?
-  setup = function(opts)
+  setup = check_cli_wrap(function(opts)
     setup_config = vim.tbl_deep_extend("force", config, opts or {})
     vim.api.nvim_create_user_command("VectorCode", function(args)
       if args.fargs[1] == "register" then
@@ -49,10 +66,15 @@ return {
         end
       end,
     })
-  end,
+  end),
 
   get_user_config = function()
     return vim.deepcopy(setup_config, true)
   end,
   notify_opts = notify_opts,
+
+  ---@return boolean
+  has_cli = has_cli,
+
+  check_cli_wrap = check_cli_wrap,
 }

@@ -1,8 +1,9 @@
 local M = {}
 
-local get_config = require("vectorcode.config").get_user_config
+local vc_config = require("vectorcode.config")
+local get_config = vc_config.get_user_config
 
-local notify_opts = require("vectorcode.config").notify_opts
+local notify_opts = vc_config.notify_opts
 
 ---@class VectorCodeResult
 ---@field path string
@@ -11,7 +12,7 @@ local notify_opts = require("vectorcode.config").notify_opts
 ---@param query_message string|string[]
 ---@param opts VectorCodeConfig?
 ---@return VectorCodeResult[]
-M.query = function(query_message, opts)
+M.query = vc_config.check_cli_wrap(function(query_message, opts)
   opts = vim.tbl_deep_extend("force", get_config(), opts or {})
   if opts.n_query == 0 then
     if opts.notify then
@@ -67,11 +68,11 @@ M.query = function(query_message, opts)
   end
 
   return decoded_response
-end
+end)
 
 ---@param files string|string[]
 ---@param project_root string?
-M.vectorise = function(files, project_root)
+M.vectorise = vc_config.check_cli_wrap(function(files, project_root)
   local args = { "--pipe", "vectorise" }
   if project_root ~= nil then
     vim.list_extend(args, { "--project_root", project_root })
@@ -130,12 +131,15 @@ M.vectorise = function(files, project_root)
       end,
     })
     :start()
-end
+end)
 
 ---@param check_item string?
 ---@param stdout_cb fun(stdout: vim.SystemCompleted)?
 ---@return boolean
 function M.check(check_item, stdout_cb)
+  if not vc_config.has_cli() then
+    return false
+  end
   check_item = check_item or "config"
   local return_code
   vim
@@ -149,5 +153,5 @@ function M.check(check_item, stdout_cb)
   return return_code == 0
 end
 
-M.setup = require("vectorcode.config").setup
+M.setup = vc_config.setup
 return M
