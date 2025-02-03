@@ -1,7 +1,8 @@
 # NeoVim Plugin
-> This plugin depends on the CLI tool. Please go through [the CLI
-> documentation](./cli.md) and make sure you know how to use VectorCode from the
-> CLI before proceeding.
+> [!NOTE]
+> This plugin depends on the CLI tool. Please go through 
+> [the CLI documentation](./cli.md) and make sure the VectorCode CLI is working
+> before proceeding.
 
 > [!NOTE]
 > When the neovim plugin doesn't work properly, please try upgrading the CLI

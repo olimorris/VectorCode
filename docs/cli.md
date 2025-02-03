@@ -89,6 +89,8 @@ or if you want to query a sentence, wrap them in quotation mark:
 ```bash
 vectorcode query "How to configure reranker model"
 ```
+If things are going right, you'll see some paths being printed, followed by
+their content. These are the selected documents that are relevant to the query.
 
 If you want to wipe the embedding for the repository (to use a new embedding
 function or after an upgrade with breaking changes), use
