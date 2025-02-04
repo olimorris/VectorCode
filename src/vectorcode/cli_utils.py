@@ -179,7 +179,7 @@ async def cli_arg_parser():
     )
     query_parser.add_argument(
         "--exclude", nargs="*", help="Files to exclude from query results."
-    )
+    ).complete = shtab.FILE
 
     subparsers.add_parser("drop", parents=[shared_parser], help="Remove a collection.")
 
