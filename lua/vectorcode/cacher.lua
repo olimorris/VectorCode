@@ -108,6 +108,9 @@ M.register_buffer = vc_config.check_cli_wrap(
   ---@param events string[]?
   ---@param debounce integer?
   function(bufnr, opts, query_cb, events, debounce)
+    if bufnr == 0 or bufnr == nil then
+      bufnr = vim.api.nvim_get_current_buf()
+    end
     if query_cb ~= nil or events ~= nil or debounce ~= nil then
       vim.schedule(function()
         vim.notify(
@@ -132,9 +135,6 @@ M.register_buffer = vc_config.check_cli_wrap(
       { query_cb = query_cb, events = events, debounce = debounce }
     )
 
-    if bufnr == 0 or bufnr == nil then
-      bufnr = vim.api.nvim_get_current_buf()
-    end
     if M.buf_is_registered(bufnr) then
       -- update the options and/or query_cb
       vim.schedule(function()
