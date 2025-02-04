@@ -274,8 +274,8 @@ function M.lualine()
 end
 
 ---@param check_item string?
----@param on_success fun()?
----@param on_failure fun()?
+---@param on_success fun(out: vim.SystemCompleted)?
+---@param on_failure fun(out: vim.SystemCompleted)?
 function M.async_check(check_item, on_success, on_failure)
   if not vc_config.has_cli() then
     if on_failure ~= nil then
@@ -288,9 +288,9 @@ function M.async_check(check_item, on_success, on_failure)
   local return_code
   vim.system({ "vectorcode", "check", check_item }, {}, function(out)
     if out.code == 0 and type(on_success) == "function" then
-      on_success()
+      on_success(out)
     elseif out.code ~= 0 and type(on_failure) == "function" then
-      on_failure()
+      on_failure(out)
     end
   end)
   return return_code == 0
