@@ -6,6 +6,7 @@
 * [Installation](#installation)
   * [Install from Source](#install-from-source)
   * [Chromadb](#chromadb)
+    * [For Windows Users](#for-windows-users)
 * [Getting Started](#getting-started)
 * [Advanced Usage](#advanced-usage)
   * [Initialising a Project](#initialising-a-project)
@@ -61,6 +62,13 @@ set up a standalone local server (they provides detailed instructions through
 [docker](https://docs.trychroma.com/production/containers/docker) and
 [systemd](https://cookbook.chromadb.dev/running/systemd-service/)), because this
 will significantly reduce the IO overhead.
+
+#### For Windows Users
+
+At the moment Windows users need to install a standalone chromadb server because
+I haven't figured out a way to reliably manage the bundled chromadb instance.
+This should be straightforward if you have docker installed. See Chromadb
+documentation for details.
 
 ## Getting Started
 
