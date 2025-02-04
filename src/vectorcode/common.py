@@ -73,7 +73,6 @@ async def start_server(configs: Config):
         ],
         stdout=subprocess.DEVNULL,
         stderr=sys.stderr,
-        preexec_fn=os.setsid,
         env=env,
     )
 
