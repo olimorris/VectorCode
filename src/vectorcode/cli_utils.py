@@ -276,7 +276,6 @@ async def load_config_file(path: Optional[PathLike] = None):
             config = json.load(fin)
         expand_envs_in_dict(config)
         return await Config.import_from(config)
-    print(f"{path} does not exist or is not a valid file.", file=sys.stderr)
     return Config()
 
 
