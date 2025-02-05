@@ -103,7 +103,9 @@ def get_client(configs: Config) -> Coroutine[Any, Any, AsyncClientAPI]:
 def get_collection_name(full_path: str) -> str:
     full_path = str(expand_path(full_path, absolute=True))
     hasher = hashlib.sha256()
-    hasher.update(f"{os.environ['USER']}@{socket.gethostname()}:{full_path}".encode())
+    hasher.update(
+        f"{os.environ.get('USER', os.environ.get('USERNAME', 'DEFAULT_USER'))}@{socket.gethostname()}:{full_path}".encode()
+    )
     collection_id = hasher.hexdigest()[:63]
     return collection_id
 
@@ -130,7 +132,9 @@ async def make_or_get_collection(client: AsyncClientAPI, configs: Config):
             "path": full_path,
             "hostname": socket.gethostname(),
             "created-by": "VectorCode",
-            "username": os.environ["USER"],
+            "username": os.environ.get(
+                "USER", os.environ.get("USERNAME", "DEFAULT_USER")
+            ),
             "embedding_function": configs.embedding_function,
         },
         embedding_function=get_embedding_function(configs),
