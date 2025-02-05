@@ -233,6 +233,8 @@ The `query` subcommand also supports customising chunk size and overlapping
 ratio because when the query message is too long it might be necessary to chunk
 it. The parameters follow the same syntax as in `vectorise` command.
 
+The CLI defaults to return the relative path of the documents from the project
+root. To use absolute path, add the `--absolute` flag.
 
 ### Listing All Collections
 

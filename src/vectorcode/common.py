@@ -141,10 +141,8 @@ async def make_or_get_collection(client: AsyncClientAPI, configs: Config):
     )
     if (
         not collection.metadata.get("hostname") == socket.gethostname()
-        or not (
-            collection.metadata.get("username")
-            in (os.environ.get("USER"), os.environ.get("USERNAME"), "DEFAULT_USER")
-        )
+        or collection.metadata.get("username")
+        not in (os.environ.get("USER"), os.environ.get("USERNAME"), "DEFAULT_USER")
         or not collection.metadata.get("created-by") == "VectorCode"
     ):
         raise IndexError(

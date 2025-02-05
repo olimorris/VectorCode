@@ -98,7 +98,11 @@ async def query(configs: Config) -> int:
         if os.path.isfile(path):
             with open(path) as fin:
                 document = fin.read()
-            structured_result.append({"path": path, "document": document})
+            if configs.use_absolute_path:
+                output_path = os.path.abspath(path)
+            else:
+                output_path = os.path.relpath(path, configs.project_root)
+            structured_result.append({"path": output_path, "document": document})
         else:
             print(
                 f"{path} is no longer a valid file! Please re-run vectorcode vectorise to refresh the database.",

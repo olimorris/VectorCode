@@ -55,6 +55,7 @@ class Config:
     query_exclude: list[PathLike] = field(default_factory=list)
     reranker: Optional[str] = None
     check_item: Optional[str] = None
+    use_absolute_path: bool = False
 
     @classmethod
     async def import_from(cls, config_dict: dict[str, Any]) -> "Config":
@@ -180,6 +181,12 @@ async def cli_arg_parser():
     query_parser.add_argument(
         "--exclude", nargs="*", help="Files to exclude from query results."
     ).complete = shtab.FILE
+    query_parser.add_argument(
+        "--absolute",
+        default=False,
+        action="store_true",
+        help="Use absolute path when returning the retrieval results.",
+    )
 
     subparsers.add_parser("drop", parents=[shared_parser], help="Remove a collection.")
 
@@ -223,6 +230,7 @@ async def cli_arg_parser():
     query_multiplier = -1
     query_exclude = []
     check_item = None
+    absolute = False
     match main_args.action:
         case "vectorise":
             files = main_args.file_paths
@@ -235,6 +243,7 @@ async def cli_arg_parser():
             number_of_result = main_args.number
             query_multiplier = main_args.multiplier
             query_exclude = main_args.exclude
+            absolute = main_args.absolute
         case "check":
             check_item = main_args.check_item
     return Config(
@@ -251,6 +260,7 @@ async def cli_arg_parser():
         query_multiplier=query_multiplier,
         query_exclude=query_exclude,
         check_item=check_item,
+        use_absolute_path=absolute,
     )
 
 
