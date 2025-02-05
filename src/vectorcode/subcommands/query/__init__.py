@@ -56,10 +56,13 @@ async def query(configs: Config) -> int:
         for i in await expand_globs(configs.query_exclude)
         if os.path.isfile(i)
     ]
+    if (await collection.count()) == 0:
+        print("Empty collection!", file=sys.stderr)
+        return 1
     try:
         num_query = await collection.count()
         if configs.query_multiplier > 0:
-            num_query = configs.n_result * configs.query_multiplier
+            num_query = int(configs.n_result * configs.query_multiplier)
         if len(configs.query_exclude):
             filtered_files = {"path": {"$nin": configs.query_exclude}}
         else:
