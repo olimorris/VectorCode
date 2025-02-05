@@ -49,7 +49,7 @@ async def start_server(configs: Config):
     assert configs.host is not None
     assert configs.port is not None
     assert configs.db_path is not None
-    if not os.path.isdir(configs.db_path):
+    if not os.path.isdir(os.path.expanduser(configs.db_path)):
         print(
             f"Creating database at {os.path.expanduser('~/.local/share/vectorcode/chromadb/')}.",
             file=sys.stderr,
@@ -141,7 +141,10 @@ async def make_or_get_collection(client: AsyncClientAPI, configs: Config):
     )
     if (
         not collection.metadata.get("hostname") == socket.gethostname()
-        or not collection.metadata.get("username") == os.environ["USER"]
+        or not (
+            collection.metadata.get("username")
+            in (os.environ.get("USER"), os.environ.get("USERNAME"), "DEFAULT_USER")
+        )
         or not collection.metadata.get("created-by") == "VectorCode"
     ):
         raise IndexError(
