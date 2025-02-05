@@ -120,6 +120,10 @@ M.register_buffer = vc_config.check_cli_wrap(
         )
       end)
     end
+    if M.buf_is_registered(bufnr) then
+      opts =
+        vim.tbl_deep_extend("force", opts or {}, vim.b[bufnr].vectorcode_cache.options)
+    end
     opts = vim.tbl_deep_extend(
       "force",
       {
