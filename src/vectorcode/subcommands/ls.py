@@ -20,7 +20,11 @@ async def ls(configs: Config) -> int:
             continue
         if meta.get("created-by") != "VectorCode":
             continue
-        if meta.get("username") != os.environ["USER"]:
+        if meta.get("username") not in (
+            os.environ.get("USER"),
+            os.environ.get("USERNAME"),
+            "DEFAULT_USER",
+        ):
             continue
         if meta.get("hostname") != socket.gethostname():
             continue
@@ -31,7 +35,7 @@ async def ls(configs: Config) -> int:
         result.append(
             {
                 "project-root": meta["path"],
-                "user": os.environ["USER"],
+                "user": meta.get("username"),
                 "hostname": socket.gethostname(),
                 "collection_name": collection_name,
                 "size": await collection.count(),
@@ -45,8 +49,11 @@ async def ls(configs: Config) -> int:
     else:
         table = []
         for meta in result:
+            project_root = meta["project-root"]
+            if os.environ.get("HOME"):
+                project_root = project_root.replace(os.environ["HOME"], "~")
             row = [
-                meta["project-root"].replace(os.environ["HOME"], "~"),
+                project_root,
                 meta["size"],
                 meta["num_files"],
                 meta["embedding_function"],
