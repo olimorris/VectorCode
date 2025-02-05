@@ -95,11 +95,11 @@ async def query(configs: Config) -> int:
         ).rerank(results)
 
     for path in aggregated_results:
-        try:
+        if os.path.isfile(path):
             with open(path) as fin:
                 document = fin.read()
             structured_result.append({"path": path, "document": document})
-        except FileNotFoundError:
+        else:
             print(
                 f"{path} is no longer a valid file! Please re-run vectorcode vectorise to refresh the database.",
                 file=sys.stderr,
