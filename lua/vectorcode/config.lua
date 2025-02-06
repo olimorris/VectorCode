@@ -44,7 +44,10 @@ return {
       vim.api.nvim_create_user_command("VectorCode", function(args)
         if args.fargs[1] == "register" then
           local bufnr = vim.api.nvim_get_current_buf()
-          require("vectorcode.cacher").register_buffer(bufnr)
+          require("vectorcode.cacher").register_buffer(
+            bufnr,
+            { run_on_register = true }
+          )
           vim.notify(
             ("Buffer %d has been registered for VectorCode."):format(bufnr),
             vim.log.levels.INFO,

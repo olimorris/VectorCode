@@ -100,6 +100,7 @@ end
 ---@field query_cb VectorCodeQueryCallback
 ---@field events string|string[]|nil
 ---@field debounce integer?
+---@field run_on_register boolean
 
 M.register_buffer = vc_config.check_cli_wrap(
   ---@param bufnr integer?
@@ -134,8 +135,10 @@ M.register_buffer = vc_config.check_cli_wrap(
         notify = false,
         timeout_ms = 5000,
         exclude_this = true,
+        run_on_register = false,
       },
-      opts or vc_config.get_user_config(),
+      vc_config.get_user_config(),
+      opts or {},
       { query_cb = query_cb, events = events, debounce = debounce }
     )
 
@@ -162,6 +165,9 @@ M.register_buffer = vc_config.check_cli_wrap(
       end)
     end
     vim.schedule(function()
+      if opts.run_on_register then
+        async_runner(opts.query_cb(bufnr), bufnr)
+      end
       vim.api.nvim_create_autocmd(opts.events, {
         group = vim.api.nvim_create_augroup(
           ("VectorCodeCacheGroup%d"):format(bufnr),
