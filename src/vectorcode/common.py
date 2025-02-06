@@ -46,8 +46,6 @@ async def wait_for_server(host, port, timeout=10):
 
 
 async def start_server(configs: Config):
-    assert configs.host is not None
-    assert configs.port is not None
     assert configs.db_path is not None
     if not os.path.isdir(os.path.expanduser(configs.db_path)):
         print(
@@ -55,6 +53,9 @@ async def start_server(configs: Config):
             file=sys.stderr,
         )
     env = os.environ.copy()
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(("", 0))  # OS selects a free ephemeral port
+        configs.port = int(s.getsockname()[1])
     env.update({"ANONYMIZED_TELEMETRY": "False"})
     process = subprocess.Popen(
         [
@@ -63,7 +64,7 @@ async def start_server(configs: Config):
             "chromadb.cli.cli",
             "run",
             "--host",
-            configs.host,
+            "localhost",
             "--port",
             str(configs.port),
             "--path",

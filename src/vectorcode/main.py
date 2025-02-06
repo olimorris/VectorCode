@@ -44,6 +44,10 @@ async def async_main():
 
     server_process = None
     if not try_server(final_configs.host, final_configs.port):
+        print(
+            f"Host at {final_configs.host}:{final_configs.port} is unavailable. VectorCode will start its own Chromadb at a random port.",
+            file=sys.stderr,
+        )
         server_process = await start_server(final_configs)
 
         def terminate():
