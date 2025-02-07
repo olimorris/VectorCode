@@ -43,6 +43,36 @@ class NaiveReranker(RerankerBase):
         )
 
 
+class CrossEncoderReranker(RerankerBase):
+    def __init__(
+        self, configs: Config, query_chunks: list[str], model_name: str, **kwargs: Any
+    ):
+        super().__init__(configs)
+        from sentence_transformers import CrossEncoder
+
+        self.model = CrossEncoder(model_name, **kwargs)
+        self.query_chunks = query_chunks
+
+    def rerank(self, results: QueryResult) -> list[str]:
+        assert results["metadatas"] is not None
+        assert results["documents"] is not None
+        documents: DefaultDict[str, list[float]] = defaultdict(list)
+        for query_chunk_idx in range(len(self.query_chunks)):
+            chunk_metas = results["metadatas"][query_chunk_idx]
+            chunk_docs = results["documents"][query_chunk_idx]
+            ranks = self.model.rank(self.query_chunks[query_chunk_idx], chunk_docs)
+            for rank in ranks:
+                documents[chunk_metas[rank["corpus_id"]]["path"]].append(
+                    float(rank["score"])
+                )
+
+        return heapq.nlargest(
+            self.n_result,
+            documents.keys(),
+            key=lambda x: float(numpy.mean(documents[x])),
+        )
+
+
 class FlagEmbeddingReranker(RerankerBase):
     def __init__(
         self, configs: Config, chunks: list[str], model_name_or_path: str, **kwargs: Any

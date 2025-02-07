@@ -88,10 +88,10 @@ async def query(configs: Config) -> int:
 
         aggregated_results = NaiveReranker(configs).rerank(results)
     else:
-        from .reranker import FlagEmbeddingReranker
+        from .reranker import CrossEncoderReranker
 
-        aggregated_results = FlagEmbeddingReranker(
-            configs, query_chunks, configs.reranker
+        aggregated_results = CrossEncoderReranker(
+            configs, query_chunks, configs.reranker, **configs.reranker_params
         ).rerank(results)
 
     for path in aggregated_results:
