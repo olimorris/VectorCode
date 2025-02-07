@@ -169,10 +169,12 @@ The JSON configuration file may hold the following values:
   guarantees the return of `n` documents, but with the risk of including too
   many less-relevant chunks that may affect the document selection. Default: 
   `-1` (any negative value means selecting documents based on all indexed chunks);
-- `reranker`: string, experimental reranking support using 
-  [`FlagEmbedding`](https://github.com/FlagOpen/FlagEmbedding) (_This is still
-  experimental and slows down the query even if it works. Use at your own risk,
-  and open an issue if things go wrong. Requires <Python3.13)_;
+- `reranker`: string, a reranking model supported by 
+  [`CrossEncoder`](https://sbert.net/docs/package_reference/cross_encoder/index.html). 
+  A list of available models is available on their documentation. The default is
+  not to use a reranker as it increases the time needed for each query;
+- `reranker_params`: dictionary, similar to `embedding_params`. The options
+  passed to `CrossEncoder` class constructor;
 - `db_settings`: dictionary, works in a similar way to `embedding_params`, but 
   for Chromadb client settings so that you can configure 
   [authentication for remote Chromadb](https://docs.trychroma.com/production/administration/auth).
