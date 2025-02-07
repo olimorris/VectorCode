@@ -60,7 +60,9 @@ class CrossEncoderReranker(RerankerBase):
         for query_chunk_idx in range(len(self.query_chunks)):
             chunk_metas = results["metadatas"][query_chunk_idx]
             chunk_docs = results["documents"][query_chunk_idx]
-            ranks = self.model.rank(self.query_chunks[query_chunk_idx], chunk_docs)
+            ranks = self.model.rank(
+                self.query_chunks[query_chunk_idx], chunk_docs, apply_softmax=True
+            )
             for rank in ranks:
                 documents[chunk_metas[rank["corpus_id"]]["path"]].append(
                     float(rank["score"])
