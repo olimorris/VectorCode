@@ -131,16 +131,22 @@ vim.api.nvim_create_autocmd("LspAttach", {
     cacher.async_check("config", function()
       cacher.register_buffer(
         bufnr,
-        { notify = false, n_query = 10 },
-        require("vectorcode.utils").lsp_document_symbol_cb(),
-        { "BufWritePost" }
+        { 
+          notify = false, 
+          n_query = 10, 
+          query_cb = require("vectorcode.utils").lsp_document_symbol_cb(),
+          events = { "BufWritePost" }
+        }
       )
     end, nil)
   end,
   desc = "Register buffer for VectorCode",
 })
 ```
-to automatically register a new buffer.
+to automatically register a new buffer. The autocommand is more convenient, but
+if you open a lot of buffers at the same time your system may be overloaded by
+the query commands. Using the user command allows you to choose what buffer to register. 
+Carefully choose how you register your buffers according to your system specs and setup.
 
 ## User Command
 ### `VectorCode register`
@@ -267,18 +273,17 @@ require("vectorcode.cacher").register_buffer(0, {
 
 The following are the available options for this function:
 - `bufnr`: buffer number. Default: current buffer;
-- `opts`: same as the `setup` function above. This API will create an autocommand 
-  that triggers a query when you write to the file, enter insert mode or read from 
-  the file;
-The following options are also available for `register_buffer`, but will soon be
-merged into `opts`:
-- `query_cb`: a callback function that takes the buffer number as the only
-  argument and returns the query message. Some examples are bundled in the
-  plugin, accessible in `require("vectorcode.utils")` Default: 
-  `require("vectorcode.utils").surrounding_lines_cb(-1)`, which queries the full buffer;
-- `events`: a list of events to trigger the query. Default:
-  `{"BufWritePost", "InsertEnter", "BufReadPost"}`;
-- `debounce`: debounce time in seconds for the query. Default: `10`.
+- `opts`: a table that accepts all options supported by `setup` and the following:
+  - `query_cb`: a callback function that takes the buffer number as the only
+    argument and returns the query message. Some examples are bundled in the
+    plugin, accessible in `require("vectorcode.utils")` Default: 
+    `require("vectorcode.utils").surrounding_lines_cb(-1)`, which queries the full buffer;
+  - `events`: a list of events to trigger the query. Default:
+    `{"BufWritePost", "InsertEnter", "BufReadPost"}`;
+  - `debounce`: debounce time in seconds for the query. Default: `10`;
+  - `run_on_register`: boolean, whether to trigger the query immediately after
+    the registration.
+
 
 #### `query_from_cache(bufnr?)`
 This function queries VectorCode from cache.
