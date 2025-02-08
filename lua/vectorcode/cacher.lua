@@ -195,12 +195,12 @@ M.register_buffer = vc_config.check_cli_wrap(
         buffer = bufnr,
         desc = "Run query on certain autocmd",
       })
-      vim.api.nvim_create_autocmd("VimLeave", {
+      vim.api.nvim_create_autocmd("BufWinLeave", {
         buffer = bufnr,
         desc = "Kill all running VectorCode async jobs.",
         group = group,
         callback = function()
-          cache = vim.b[bufnr].vectorcode_cache ---@cast cache VectorCodeCache
+          local cache = vim.b[bufnr].vectorcode_cache ---@cast cache VectorCodeCache
           if cache ~= nil then
             for job_pid, is_running in pairs(cache.jobs) do
               if is_running == true then
