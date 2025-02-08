@@ -35,6 +35,7 @@ local function async_runner(query_message, buf_nr)
   local job = require("plenary.job"):new({
     command = "vectorcode",
     args = args,
+    detached = true,
     on_start = function() end,
     on_exit = function(self, code, signal)
       if not M.buf_is_registered(buf_nr) then
@@ -168,11 +169,12 @@ M.register_buffer = vc_config.check_cli_wrap(
       if opts.run_on_register then
         async_runner(opts.query_cb(bufnr), bufnr)
       end
+      local group = vim.api.nvim_create_augroup(
+        ("VectorCodeCacheGroup%d"):format(bufnr),
+        { clear = true }
+      )
       vim.api.nvim_create_autocmd(opts.events, {
-        group = vim.api.nvim_create_augroup(
-          ("VectorCodeCacheGroup%d"):format(bufnr),
-          { clear = true }
-        ),
+        group = group,
         callback = function()
           assert(
             vim.b[bufnr].vectorcode_cache ~= nil,
@@ -191,6 +193,22 @@ M.register_buffer = vc_config.check_cli_wrap(
           end)
         end,
         buffer = bufnr,
+        desc = "Run query on certain autocmd",
+      })
+      vim.api.nvim_create_autocmd("VimLeave", {
+        buffer = bufnr,
+        desc = "Kill all running VectorCode async jobs.",
+        group = group,
+        callback = function()
+          cache = vim.b[bufnr].vectorcode_cache ---@cast cache VectorCodeCache
+          if cache ~= nil then
+            for job_pid, is_running in pairs(cache.jobs) do
+              if is_running == true then
+                vim.uv.kill(job_pid, 15)
+              end
+            end
+          end
+        end,
       })
     end)
   end
