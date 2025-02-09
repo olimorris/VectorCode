@@ -121,6 +121,16 @@ Here's how VectorCode may be used with
 }
 ```
 
+> [!NOTE]
+> It can be challenging to find the best way to incorporate the project-level
+> context into the prompt. The template above works well for [`Qwen2.5-Coder`](https://github.com/QwenLM/Qwen2.5-Coder),
+> but may not work as intended for your LLM. I compiled the prompt construction 
+> code snippets for some other LLMs
+[in the wiki](https://github.com/Davidyz/VectorCode/wiki/Configuration-Gallery).
+> Please check it out, because if your model was trained with project-level
+> context support, you'll have to modify the prompt structure accordingly to maximise
+> its potential.
+
 To use [async cache](#cached-asynchronous-api), you need to register the buffer.
 You may either manually register a buffer using the [user command](#vectorcode-register)
 `VectorCode register`, or set up an autocommand:
