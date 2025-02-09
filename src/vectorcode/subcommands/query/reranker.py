@@ -73,39 +73,3 @@ class CrossEncoderReranker(RerankerBase):
             documents.keys(),
             key=lambda x: float(numpy.mean(documents[x])),
         )
-
-
-class FlagEmbeddingReranker(RerankerBase):
-    def __init__(
-        self, configs: Config, chunks: list[str], model_name_or_path: str, **kwargs: Any
-    ):
-        super().__init__(configs)
-        from FlagEmbedding import FlagAutoReranker
-
-        self.original_chunks = chunks
-        self.model = FlagAutoReranker.from_finetuned(
-            model_name_or_path=model_name_or_path, **kwargs
-        )
-        self.query_chunks = chunks
-
-    def rerank(self, results: QueryResult) -> list[str]:
-        assert results["metadatas"] is not None
-        assert results["documents"] is not None
-        documents: DefaultDict[str, list[float]] = defaultdict(list)
-        for query_chunk_idx in range(len(self.query_chunks)):
-            chunk_metas = results["metadatas"][query_chunk_idx]
-            chunk_docs = results["documents"][query_chunk_idx]
-            similarities = self.model.compute_score(
-                [(self.query_chunks[query_chunk_idx], doc) for doc in chunk_docs],
-                normalize=True,
-            )
-            for i, meta in enumerate(chunk_metas):
-                if meta["path"] is None:
-                    # so that vectorcode doesn't break on old collections.
-                    continue
-                documents[meta["path"]].append(similarities[i])
-        return heapq.nlargest(
-            self.n_result,
-            documents.keys(),
-            key=lambda x: float(numpy.mean(documents[x])),
-        )
