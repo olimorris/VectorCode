@@ -103,7 +103,7 @@ Here's how VectorCode may be used with
             prompt = function(pref, suff)
               local prompt_message = ""
               for _, file in ipairs(vectorcode_cacher.query_from_cache(0)) do
-                prompt_message = "<|file_sep|>" .. file.path .. "\n" .. file.document
+                prompt_message = prompt_message .. "<|file_sep|>" .. file.path .. "\n" .. file.document
               end
               return prompt_message
                 .. "<|fim_prefix|>"
