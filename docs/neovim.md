@@ -167,8 +167,8 @@ Register the current buffer for async caching.
 
 ### `VectorCode deregister`
 
-Deregister the current buffer. Any running jobs will continue to run, but no
-further jobs will be scheduled.
+Deregister the current buffer. Any running jobs will be killed, cached results
+will be deleted, and no more queries will be run.
 
 ## Configuration
 

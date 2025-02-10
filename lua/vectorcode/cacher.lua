@@ -9,6 +9,18 @@ local notify_opts = vc_config.notify_opts
 ---@field jobs table<integer, boolean>
 ---@field last_run integer?
 
+---@param bufnr integer
+local function kill_jobs(bufnr)
+  local cache = vim.b[bufnr].vectorcode_cache ---@cast cache VectorCodeCache
+  if cache ~= nil then
+    for job_pid, is_running in pairs(cache.jobs) do
+      if is_running == true then
+        vim.uv.kill(job_pid, 15)
+      end
+    end
+  end
+end
+
 ---@param query_message string|string[]
 ---@param buf_nr integer
 local function async_runner(query_message, buf_nr)
@@ -202,14 +214,7 @@ M.register_buffer = vc_config.check_cli_wrap(
         desc = "Kill all running VectorCode async jobs.",
         group = group,
         callback = function()
-          local cache = vim.b[bufnr].vectorcode_cache ---@cast cache VectorCodeCache
-          if cache ~= nil then
-            for job_pid, is_running in pairs(cache.jobs) do
-              if is_running == true then
-                vim.uv.kill(job_pid, 15)
-              end
-            end
-          end
+          kill_jobs(bufnr)
         end,
       })
     end)
@@ -225,6 +230,7 @@ M.deregister_buffer = vc_config.check_cli_wrap(
       bufnr = vim.api.nvim_get_current_buf()
     end
     if M.buf_is_registered(bufnr) then
+      kill_jobs(bufnr)
       vim.api.nvim_del_augroup_by_name(("VectorCodeCacheGroup%d"):format(bufnr))
       vim.api.nvim_buf_set_var(bufnr, "vectorcode_cache", nil)
       if opts.notify then
