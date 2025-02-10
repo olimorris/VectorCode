@@ -128,7 +128,7 @@ Here's how VectorCode may be used with
 > context into the prompt. The template above works well for [`Qwen2.5-Coder`](https://github.com/QwenLM/Qwen2.5-Coder),
 > but may not work as intended for your LLM. I compiled the prompt construction 
 > code snippets for some other LLMs
-[in the wiki](https://github.com/Davidyz/VectorCode/wiki/Configuration-Gallery).
+[in the wiki](https://github.com/Davidyz/VectorCode/wiki/Prompt-Gallery).
 > Please check it out, because if your model was trained with project-level
 > context support, you'll have to modify the prompt structure accordingly to maximise
 > its potential.
