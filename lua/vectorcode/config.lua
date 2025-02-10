@@ -3,11 +3,13 @@
 ---@field notify boolean?
 ---@field timeout_ms number?
 ---@field exclude_this boolean?
+---@field events string|string[]|nil
 local config = {
   n_query = 1,
   notify = true,
   timeout_ms = 5000,
   exclude_this = true,
+  events = { "BufWritePost", "InsertEnter", "BufReadPost" },
 }
 
 local setup_config = vim.deepcopy(config, true)

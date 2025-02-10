@@ -111,7 +111,6 @@ end
 
 ---@class VectorCodeRegisterOpts: VectorCodeConfig
 ---@field query_cb VectorCodeQueryCallback
----@field events string|string[]|nil
 ---@field debounce integer?
 ---@field run_on_register boolean
 
