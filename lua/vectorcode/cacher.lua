@@ -115,10 +115,12 @@ M.register_buffer = vc_config.check_cli_wrap(
     end
     if query_cb ~= nil or events ~= nil or debounce ~= nil then
       vim.schedule(function()
-        vim.notify(
-          "The function signature for `vectorcode.cacher.register_buffer` has changed.\nYour current config will soon be invalid.\nPlease update your config.",
-          vim.log.levels.WARN,
-          notify_opts
+        vim.deprecate(
+          "query_cb, events and debounce",
+          "opts",
+          "0.3.0",
+          "VectorCode",
+          true
         )
       end)
     end
