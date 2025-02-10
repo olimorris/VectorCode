@@ -28,7 +28,8 @@
     * [`async_check(check_item?, on_success?, on_failure?)`](#async_checkcheck_item-on_success-on_failure)
     * [`buf_is_registered(bufnr?)`](#buf_is_registeredbufnr)
 * [Integrations](#integrations)
-* [nvim-lualine/lualine.nvim:](#nvim-lualinelualinenvim)
+  * [olimorris/codecompanion.nvim](#olimorriscodecompanionnvim)
+  * [nvim-lualine/lualine.nvim:](#nvim-lualinelualinenvim)
 
 <!-- mtoc-end -->
 
@@ -342,7 +343,30 @@ Return value: `true` if registered, `false` otherwise.
 `require("vectorcode.integrations")` provides integration utilities for some
 other neovim plugins.
 
-## [nvim-lualine/lualine.nvim](https://github.com/nvim-lualine/lualine.nvim):
+### [olimorris/codecompanion.nvim](https://github.com/olimorris/codecompanion.nvim)
+A [slash command](https://codecompanion.olimorris.dev/usage/chat-buffer/slash-commands.html#using-slash-commands)
+that adds VectorCode retrieval results to the prompt sent to the LLM to enhance
+its understanding about your repository.
+
+```lua
+opts =
+  {
+    -- your other codecompanion configs
+    strategies = {
+      chat = {
+        adapter = "your adapter",
+        slash_commands = {
+          -- add the vectorcode command here.
+          codebase = require("vectorcode.integrations").codecompanion.chat.slash_command,
+        },
+      },
+    },
+  }  
+```
+
+### [nvim-lualine/lualine.nvim](https://github.com/nvim-lualine/lualine.nvim):
+A `lualine` component that shows the status of the async job and the number of
+cached retrieval results.
 ```lua 
 tabline = {
   lualine_y = {
