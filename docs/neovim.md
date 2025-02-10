@@ -25,9 +25,10 @@
   * [Cached Asynchronous API](#cached-asynchronous-api)
     * [`register_buffer(bufnr?, opts?)`](#register_bufferbufnr-opts)
     * [`query_from_cache(bufnr?)`](#query_from_cachebufnr)
-    * [`lualine()`](#lualine)
     * [`async_check(check_item?, on_success?, on_failure?)`](#async_checkcheck_item-on_success-on_failure)
     * [`buf_is_registered(bufnr?)`](#buf_is_registeredbufnr)
+* [Integrations](#integrations)
+* [nvim-lualine/lualine.nvim:](#nvim-lualinelualinenvim)
 
 <!-- mtoc-end -->
 
@@ -308,14 +309,6 @@ The following are the available options for this function:
 Return value: an array of results. Each item of the array is in the format of 
 `{path="path/to/your/code.lua", document="document content"}`.
 
-#### `lualine()`
-This function returns a lualine component that displays the status of VectorCode
-for the current buffer. 
-
-```lua
-lualine_x = { require("vectorcode.cacher").lualine() }
-```
-
 #### `async_check(check_item?, on_success?, on_failure?)`
 This function checks if VectorCode has been configured properly for your project.
 
@@ -343,3 +336,17 @@ require("vectorcode.cacher").buf_is_registered()
 The following are the available options for this function:
 - `bufnr`: buffer number. Default: current buffer.
 Return value: `true` if registered, `false` otherwise.
+
+## Integrations
+
+`require("vectorcode.integrations")` provides integration utilities for some
+other neovim plugins.
+
+## [nvim-lualine/lualine.nvim](https://github.com/nvim-lualine/lualine.nvim):
+```lua 
+tabline = {
+  lualine_y = {
+    require("vectorcode.integrations").lualine()
+  }
+}
+```
