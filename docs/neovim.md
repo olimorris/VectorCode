@@ -27,6 +27,7 @@
     * [`query_from_cache(bufnr?)`](#query_from_cachebufnr)
     * [`async_check(check_item?, on_success?, on_failure?)`](#async_checkcheck_item-on_success-on_failure)
     * [`buf_is_registered(bufnr?)`](#buf_is_registeredbufnr)
+    * [`make_prompt_component(bufnr?, component_cb?)`](#make_prompt_componentbufnr-component_cb)
 * [Integrations](#integrations)
   * [olimorris/codecompanion.nvim](#olimorriscodecompanionnvim)
   * [nvim-lualine/lualine.nvim:](#nvim-lualinelualinenvim)
@@ -232,7 +233,7 @@ prompt = function(prefix, suffix)
         -- This works for qwen2.5-coder.
         file_context = file_context
             .. "<|file_sep|>"
-            .. "path/to/your/code.lua"
+            .. source.path
             .. "\n"
             .. source.document
             .. "\n"
@@ -338,6 +339,24 @@ The following are the available options for this function:
 - `bufnr`: buffer number. Default: current buffer.
 Return value: `true` if registered, `false` otherwise.
 
+#### `make_prompt_component(bufnr?, component_cb?)`
+Compile the retrieval results into a string.
+Parameters:
+- `bufnr`: buffer number. Default: current buffer;
+- `component_cb`: a callback function that formats each retrieval result, so
+  that you can customise the control token, etc. for the component. The default
+  is the following:
+```lua
+function(result)
+    return "<|file_sep|>" .. result.path .. "\n" .. result.document
+end
+```
+
+`make_prompt_component` returns a table with 2 keys:
+- `count`: number of retrieved documents;
+- `content`: The retrieval results concatenated together into a string. Each
+  result is formatted by `component_cb`.
+
 ## Integrations
 
 `require("vectorcode.integrations")` provides integration utilities for some
@@ -357,12 +376,15 @@ opts =
         adapter = "your adapter",
         slash_commands = {
           -- add the vectorcode command here.
-          codebase = require("vectorcode.integrations").codecompanion.chat.slash_command,
+          codebase = require("vectorcode.integrations").codecompanion.chat.make_slash_command(),
         },
       },
     },
   }  
 ```
+
+You can pass [`component_cb`]() to the `make_slash_command` function to
+customise how the context is used.
 
 ### [nvim-lualine/lualine.nvim](https://github.com/nvim-lualine/lualine.nvim):
 A `lualine` component that shows the status of the async job and the number of

@@ -282,6 +282,30 @@ M.query_from_cache = vc_config.check_cli_wrap(
   end
 )
 
+---@param bufnr integer
+---@param component_cb (fun(result:VectorCodeResult):string)?
+---@return {content:string, count:integer}
+function M.make_prompt_component(bufnr, component_cb)
+  if bufnr == 0 or bufnr == nil then
+    bufnr = vim.api.nvim_get_current_buf()
+  end
+  if not M.buf_is_registered(bufnr) then
+    return { content = "", count = 0 }
+  end
+  if component_cb == nil then
+    ---@type fun(result:VectorCodeResult):string
+    component_cb = function(result)
+      return "<|file_sep|>" .. result.path .. "\n" .. result.document
+    end
+  end
+  local final_component = ""
+  local retrieval = M.query_from_cache(bufnr)
+  for _, file in pairs(retrieval) do
+    final_component = final_component .. component_cb(file)
+  end
+  return { content = final_component, count = #retrieval }
+end
+
 function M.lualine()
   vim.deprecate(
     'require("vectorcode.cacher").lualine()',
