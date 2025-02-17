@@ -47,11 +47,13 @@ async def wait_for_server(host, port, timeout=10):
 
 async def start_server(configs: Config):
     assert configs.db_path is not None
-    if not os.path.isdir(os.path.expanduser(configs.db_path)):
+    db_path = os.path.expanduser(configs.db_path)
+    if not os.path.isdir(db_path):
         print(
-            f"Creating database at {os.path.expanduser('~/.local/share/vectorcode/chromadb/')}.",
+            f"Using local database at {os.path.expanduser('~/.local/share/vectorcode/chromadb/')}.",
             file=sys.stderr,
         )
+        db_path = os.path.expanduser("~/.local/share/vectorcode/chromadb/")
     env = os.environ.copy()
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("", 0))  # OS selects a free ephemeral port
@@ -68,7 +70,7 @@ async def start_server(configs: Config):
             "--port",
             str(configs.port),
             "--path",
-            str(configs.db_path),
+            db_path,
             "--log-path",
             os.path.join(str(configs.project_root), "chroma.log"),
         ],
