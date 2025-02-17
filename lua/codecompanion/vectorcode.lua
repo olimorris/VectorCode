@@ -49,6 +49,7 @@ return {
   - **Don't escape** special characters
   - Make sure the tools xml block is **surrounded by ```xml**
   - seperate phrases into distinct keywords when appropriate
+  - For a symbol defined/declared in a different file, this tool may be able to find the definition. Add the name of the symbol to the query keywords if needed
   - the query should be a JSON array of strings. Each string is either a word or a phrase
   - The embeddings are generated from source code, so using keywords that may be used as a variable name may help with the retrieval
   - The path of a retrieved file will be wrapped in `<path>` and `</path>` tags. Its content will be right after the `</path>` tag, wrapped by `<content>` and `</content>` tags
