@@ -7,6 +7,7 @@
   * [Install from Source](#install-from-source)
   * [Chromadb](#chromadb)
     * [For Windows Users](#for-windows-users)
+  * [Legacy Environments](#legacy-environments)
 * [Getting Started](#getting-started)
 * [Advanced Usage](#advanced-usage)
   * [Initialising a Project](#initialising-a-project)
@@ -69,6 +70,15 @@ At the moment Windows users need to install a standalone chromadb server because
 I haven't figured out a way to reliably manage the bundled chromadb instance.
 This should be straightforward if you have docker installed. See Chromadb
 documentation for details.
+
+### Legacy Environments
+
+If your environment doesn't support `numpy` version 2.0+, the default,
+unconstrained numpy picked by `pipx` may not work for you. In this case, you can
+try installing the package by `pipx install vectorcode[legacy]`, which enforces 
+numpy `v1.x`. If this doesn't help, please open an issue with your OS, CPU
+architecture, python version and the vectorcode virtual environment 
+(`pipx runpip vectorcode freeze`).
 
 ## Getting Started
 
