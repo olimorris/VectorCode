@@ -12,8 +12,9 @@ local notify_opts = vc_config.notify_opts
 M.query = vc_config.check_cli_wrap(
   ---@param query_message string|string[]
   ---@param opts VectorCodeConfig?
+  ---@param callback fun(result:VectorCodeResult[])?
   ---@return VectorCodeResult[]
-  function(query_message, opts)
+  function(query_message, opts, callback)
     opts = vim.tbl_deep_extend("force", get_config(), opts or {})
     if opts.n_query == 0 then
       if opts.notify then
@@ -21,9 +22,11 @@ M.query = vc_config.check_cli_wrap(
       end
       return {}
     end
-    ---@type string?
-    local raw_response = ""
 
+    local timeout_ms = opts.timeout_ms
+    if timeout_ms < 1 then
+      timeout_ms = nil
+    end
     if opts.notify then
       vim.notify(
         ("Started retrieving %s documents."):format(tostring(opts.n_query)),
@@ -31,7 +34,7 @@ M.query = vc_config.check_cli_wrap(
         notify_opts
       )
     end
-    local args = { "query", "--pipe", "-n", tostring(opts.n_query) }
+    local args = { "vectorcode", "query", "--pipe", "-n", tostring(opts.n_query) }
     if type(query_message) == "string" then
       query_message = { query_message }
     end
@@ -40,35 +43,46 @@ M.query = vc_config.check_cli_wrap(
     if opts.exclude_this then
       vim.list_extend(args, { "--exclude", vim.api.nvim_buf_get_name(0) })
     end
-    local job = require("plenary.job"):new({
-      command = "vectorcode",
-      args = args,
-      on_exit = function(self, code, signal)
-        if code ~= 0 then
-          raw_response = nil
-        else
-          raw_response = table.concat(self:result(), "")
-        end
-      end,
-      and_then_on_failure = function()
-        raw_response = nil
-      end,
-    })
-    job:sync(opts.timeout_ms)
 
     local decoded_response = {}
-    if raw_response ~= nil and raw_response ~= "" then
-      decoded_response = vim.json.decode(raw_response, { object = true, array = true })
-      if opts.notify then
-        vim.notify(
-          ("Retrieved %s documents."):format(tostring(#decoded_response)),
-          vim.log.levels.INFO,
-          notify_opts
-        )
+    local job = vim.system(args, { text = true }, function(out)
+      local raw_response
+      if out.code == 124 and out.signal == 9 then
+        -- killed due to timeout
+        raw_response = nil
+        if opts.notify then
+          vim.schedule(function()
+            vim.notify(
+              "VectorCode process killed due to timeout.",
+              vim.log.levels.WARN,
+              notify_opts
+            )
+          end)
+        end
+      else
+        raw_response = out.stdout
       end
-    end
 
-    return decoded_response
+      if raw_response ~= nil and raw_response ~= "" then
+        decoded_response =
+          vim.json.decode(raw_response, { object = true, array = true })
+        if opts.notify then
+          vim.notify(
+            ("Retrieved %s documents."):format(tostring(#decoded_response)),
+            vim.log.levels.INFO,
+            notify_opts
+          )
+        end
+        if type(callback) == "function" then
+          callback(decoded_response)
+        end
+      end
+    end)
+
+    if callback == nil then
+      job:wait(timeout_ms)
+      return decoded_response
+    end
   end
 )
 

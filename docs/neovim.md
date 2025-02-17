@@ -20,7 +20,7 @@
   * [`setup(opts?)`](#setupopts)
 * [API Usage](#api-usage)
   * [Synchronous API](#synchronous-api)
-    * [`query(query_message, opts?)`](#queryquery_message-opts)
+    * [`query(query_message, opts?, callback?)`](#queryquery_message-opts-callback)
     * [`check(check_item?)`](#checkcheck_item)
   * [Cached Asynchronous API](#cached-asynchronous-api)
     * [`register_buffer(bufnr?, opts?)`](#register_bufferbufnr-opts)
@@ -204,7 +204,7 @@ completion, the async API will minimise the interruption to your workflow.
 
 
 ### Synchronous API
-#### `query(query_message, opts?)`
+#### `query(query_message, opts?, callback?)`
 This function queries VectorCode and returns an array of results.
 
 ```lua
@@ -212,13 +212,19 @@ require("vectorcode").query("some query message", {
     n_query = 5,
 })
 ```
+- `query_message`: string or a list of strings, the query messages;
+- `opts`: The following are the available options for this function:
+  - `n_query`: number of retrieved documents. Default: `1`;
+  - `notify`: whether to show notifications when a query is completed.
+    Default: `true`;
+  - `timeout_ms`: timeout in milliseconds for the query operation. Default: 
+    `5000` (5 seconds). When set to a non-positive number, this will run infinitely 
+    without a timeout.
+- `callback`: a callback function that takes the result of the retrieval as the
+  only parameter. If this is set, the `query` function will be non-blocking and
+  runs in an async manner. In this case, it doesn't return any value and 
+  retrieval results can only be accessed by this callback function.
 
-The following are the available options for this function:
-- `n_query`: number of retrieved documents. Default: `1`;
-- `notify`: whether to show notifications when a query is completed.
-  Default: `true`;
-- `timeout_ms`: timeout in milliseconds for the query operation. Default: 
-  `5000` (5 seconds).
 The return value of this function is an array of results in the format of
 `{path="path/to/your/code.lua", document="document content"}`. 
 
