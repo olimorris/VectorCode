@@ -189,7 +189,9 @@ The following are the available options for this function:
   `5000` (5 seconds);
 - `exclude_this`: whether to exclude the file you're editing. Setting this to
   `false` may lead to an outdated version of the current file being sent to the
-  LLM as the prompt, and can lead to generations with outdated information.
+  LLM as the prompt, and can lead to generations with outdated information;
+- `events`: a list of `autocmd` events which triggers the async caching. The
+  default is `{ "BufWritePost", "InsertEnter", "BufReadPost" }`.
 
 ## API Usage
 This plugin provides 2 sets of APIs that provides similar functionalities. The
