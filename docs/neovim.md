@@ -182,10 +182,13 @@ require("vectorcode").setup({
 ```
 
 The following are the available options for this function:
-- `n_query`: number of retrieved documents. Default: `1`;
+- `n_query`: number of retrieved documents. A large number gives a higher chance
+  of including the right file, but with the risk of saturating the context 
+  window and getting truncated. Default: `1`;
 - `notify`: whether to show notifications when a query is completed.
   Default: `true`;
-- `timeout_ms`: timeout in milliseconds for the query operation. Default: 
+- `timeout_ms`: timeout in milliseconds for the query operation. Applies to
+  synchronous API only. Default: 
   `5000` (5 seconds);
 - `exclude_this`: whether to exclude the file you're editing. Setting this to
   `false` may lead to an outdated version of the current file being sent to the
