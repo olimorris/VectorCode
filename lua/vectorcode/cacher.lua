@@ -117,23 +117,9 @@ end
 M.register_buffer = vc_config.check_cli_wrap(
   ---@param bufnr integer?
   ---@param opts VectorCodeRegisterOpts?
-  ---@param query_cb VectorCodeQueryCallback?
-  ---@param events string[]?
-  ---@param debounce integer?
-  function(bufnr, opts, query_cb, events, debounce)
+  function(bufnr, opts)
     if bufnr == 0 or bufnr == nil then
       bufnr = vim.api.nvim_get_current_buf()
-    end
-    if query_cb ~= nil or events ~= nil or debounce ~= nil then
-      vim.schedule(function()
-        vim.deprecate(
-          "query_cb, events and debounce",
-          "opts",
-          "0.3.0",
-          "VectorCode",
-          true
-        )
-      end)
     end
     if M.buf_is_registered(bufnr) then
       opts =
@@ -306,20 +292,9 @@ function M.make_prompt_component(bufnr, component_cb)
   return { content = final_component, count = #retrieval }
 end
 
-function M.lualine()
-  vim.deprecate(
-    'require("vectorcode.cacher").lualine()',
-    'require("vectorcode.integrations").lualine()',
-    "0.3.0",
-    "VectorCode",
-    false
-  )
-  return require("vectorcode.integrations").lualine()
-end
-
 ---@param check_item string?
 ---@param on_success fun(out: vim.SystemCompleted)?
----@param on_failure fun(out: vim.SystemCompleted)?
+---@param on_failure fun(out: vim.SystemCompleted?)?
 function M.async_check(check_item, on_success, on_failure)
   if not vc_config.has_cli() then
     if on_failure ~= nil then
