@@ -94,6 +94,9 @@ After that, you can start vectorising files for the project:
 ```bash
 vectorcode vectorise src/**/*.py
 ```
+> VectorCode doesn't track file changes, so you need to re-vectorise edited
+> files. You may automate this by a git pre-commit hook, etc.
+
 And now, you're ready to make queries that will retrieve the relevant documents:
 ```bash
 vectorcode query reranker -n 3
