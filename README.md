@@ -59,11 +59,14 @@ and chat plugin available on VSCode and JetBrain products.
   been indexed~ Returns empty array instead;
 - [x] job pool for async caching;
 - [x] [persistent-client](https://docs.trychroma.com/docs/run-chroma/persistent-client);
-- [x] proper [remote Chromadb](https://docs.trychroma.com/production/administration/auth) support (with authentication, etc.);
+- [-] proper [remote Chromadb](https://docs.trychroma.com/production/administration/auth) support (with authentication, etc.);
 - [x] respect `.gitignore`;
 - [x] implement some sort of project-root anchors (such as `.git` or a custom
   `.vectorcode.json`) that enhances automatic project-root detection.
   **Implemented project-level `.vectorcode/` and `.git` as root anchor**
+- [ ] ability to view and delete files in a collection (atm you can only `drop`
+  and `vectorise` again);
+- [ ] joint search (?).
 
 ## Credit
 
