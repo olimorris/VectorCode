@@ -1,13 +1,11 @@
----@param max_num integer?
-local make_tool = function(max_num)
+---@alias tool_opts {max_num: integer?, default_num: integer?}
+---@param opts tool_opts?
+local make_tool = function(opts)
+  opts = vim.tbl_deep_extend("force", { max_num = -1, default_num = 10 }, opts or {})
   local xml2lua = require("codecompanion.utils.xml.xml2lua")
   local capping_message = ""
-  if max_num == nil then
-    -- use -1 for unlimited
-    max_num = -1
-  end
-  if max_num > 0 then
-    capping_message = ("  - Request for at most %d documents"):format(max_num)
+  if opts.max_num > 0 then
+    capping_message = ("  - Request for at most %d documents"):format(opts.max_num)
   end
   return {
     name = "vectorcode",
@@ -29,6 +27,7 @@ local make_tool = function(max_num)
           _attr = { name = "vectorcode" },
           action = {
             _attr = { type = "query" },
+            -- TODO: need to figure out how to make `query` a XML list.
             query = '["keyword1", "keyword2"]',
             count = 5,
           },
@@ -49,7 +48,7 @@ local make_tool = function(max_num)
       return string.format(
         [[### VectorCode, a repository indexing and query tool.
 
-1. **Purpose**: This gives you the ability to access the repository to find information that you may not know.
+1. **Purpose**: This gives you the ability to access the repository to find information that you may need to assist the user.
 
 2. **Usage**: Return an XML markdown code block that retrieves relevant documents corresponding to the generated query.
 
@@ -63,6 +62,8 @@ local make_tool = function(max_num)
   - the query should be a JSON array of strings. Each string is either a word or a phrase
   - The embeddings are generated from source code, so using keywords that may be used as a variable name may help with the retrieval
   - The path of a retrieved file will be wrapped in `<path>` and `</path>` tags. Its content will be right after the `</path>` tag, wrapped by `<content>` and `</content>` tags
+  - If you used the tool, tell users that they may need to wait for the results and there will be a virtual text indicator that shows the tool is still running
+  %s
   %s
 
 4. **Actions**:
@@ -82,6 +83,9 @@ b) **Query for 2 documents using one keyword: `keyword1`**:
 Remember:
 - Minimize explanations unless prompted. Focus on generating correct XML.]],
         capping_message,
+        ("  - If the user did not specify how many documents to retrieve, **start with %d documents**"):format(
+          opts.default_num
+        ),
         xml2lua.toXml({ tools = { schema[1] } }),
         xml2lua.toXml({ tools = { schema[2] } })
       )
@@ -117,7 +121,7 @@ Remember:
         end
 
         for i, file in ipairs(retrievals) do
-          if max_num < 0 or i <= max_num then
+          if opts.max_num < 0 or i <= opts.max_num then
             self.chat:add_message({
               role = "user",
               content = string.format(
