@@ -29,8 +29,6 @@
     * [`buf_is_registered(bufnr?)`](#buf_is_registeredbufnr)
     * [`make_prompt_component(bufnr?, component_cb?)`](#make_prompt_componentbufnr-component_cb)
 * [Integrations](#integrations)
-  * [olimorris/codecompanion.nvim](#olimorriscodecompanionnvim)
-  * [nvim-lualine/lualine.nvim:](#nvim-lualinelualinenvim)
 
 <!-- mtoc-end -->
 
@@ -365,40 +363,9 @@ end
 
 ## Integrations
 
-`require("vectorcode.integrations")` provides integration utilities for some
-other neovim plugins.
-
-### [olimorris/codecompanion.nvim](https://github.com/olimorris/codecompanion.nvim)
-A [slash command](https://codecompanion.olimorris.dev/usage/chat-buffer/slash-commands.html#using-slash-commands)
-that adds VectorCode retrieval results to the prompt sent to the LLM to enhance
-its understanding about your repository.
-
-```lua
-opts =
-  {
-    -- your other codecompanion configs
-    strategies = {
-      chat = {
-        adapter = "your adapter",
-        slash_commands = {
-          -- add the vectorcode command here.
-          codebase = require("vectorcode.integrations").codecompanion.chat.make_slash_command(),
-        },
-      },
-    },
-  }  
-```
-
-You can pass [`component_cb`]() to the `make_slash_command` function to
-customise how the context is used.
-
-### [nvim-lualine/lualine.nvim](https://github.com/nvim-lualine/lualine.nvim):
-A `lualine` component that shows the status of the async job and the number of
-cached retrieval results.
-```lua 
-tabline = {
-  lualine_y = {
-    require("vectorcode.integrations").lualine()
-  }
-}
-```
+See [the wiki](https://github.com/Davidyz/VectorCode/wiki/Neovim-Integrations)
+for instructions to use this plugin with 
+[milanglacier/minuet-ai.nvim](https://github.com/milanglacier/minuet-ai.nvim), 
+[olimorris/codecompanion.nvim](https://github.com/olimorris/codecompanion.nvim)
+and 
+[nvim-lualine/lualine.nvim](https://github.com/nvim-lualine/lualine.nvim)
