@@ -28,7 +28,9 @@ async def async_main():
         if cli_args.project_root is None:
             cli_args.project_root = str(Path(project_dir).parent.resolve())
 
-        project_config_file = os.path.join(project_dir, "config.json")
+        project_config_file = os.path.join(
+            cli_args.project_root, ".vectorcode", "config.json"
+        )
         if os.path.isfile(project_config_file):
             # has project-local config. use it
             final_configs = await (
