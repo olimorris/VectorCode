@@ -1,6 +1,9 @@
 ---@alias tool_opts {max_num: integer?, default_num: integer?}
+
+local check_cli_wrap = require("vectorcode.config").check_cli_wrap
+
 ---@param opts tool_opts?
-local make_tool = function(opts)
+local make_tool = check_cli_wrap(function(opts)
   opts = vim.tbl_deep_extend("force", { max_num = -1, default_num = 10 }, opts or {})
   local xml2lua = require("codecompanion.utils.xml.xml2lua")
   local capping_message = ""
@@ -60,9 +63,10 @@ local make_tool = function(opts)
   - seperate phrases into distinct keywords when appropriate
   - For a symbol defined/declared in a different file, this tool may be able to find the definition. Add the name of the symbol to the query keywords if needed
   - the query should be a JSON array of strings. Each string is either a word or a phrase
-  - The embeddings are generated from source code, so using keywords that may be used as a variable name may help with the retrieval
+  - The embeddings are generated from source code, so using keywords that may be used as a variable name or are valid statements in the programming language may help with the retrieval
   - The path of a retrieved file will be wrapped in `<path>` and `</path>` tags. Its content will be right after the `</path>` tag, wrapped by `<content>` and `</content>` tags
   - If you used the tool, tell users that they may need to wait for the results and there will be a virtual text indicator that shows the tool is still running
+  - Avoid retrieving one single file because the retrieval mechanism may not be very accurate
   %s
   %s
 
@@ -147,12 +151,12 @@ Remember:
       end,
     },
   }
-end
+end)
 
 return {
   chat = {
     ---@param component_cb (fun(result:VectorCodeResult):string)?
-    make_slash_command = function(component_cb)
+    make_slash_command = check_cli_wrap(function(component_cb)
       return {
         description = "Add relevant files from the codebase.",
         ---@param chat CodeCompanion.Chat
@@ -181,7 +185,7 @@ return {
           end
         end,
       }
-    end,
+    end),
 
     make_tool = make_tool,
   },
