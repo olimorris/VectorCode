@@ -58,7 +58,10 @@ async def query(configs: Config) -> int:
     try:
         num_query = await collection.count()
         if configs.query_multiplier > 0:
-            num_query = int(configs.n_result * configs.query_multiplier)
+            num_query = min(
+                int(configs.n_result * configs.query_multiplier),
+                await collection.count(),
+            )
         if len(configs.query_exclude):
             filtered_files = {"path": {"$nin": configs.query_exclude}}
         else:
