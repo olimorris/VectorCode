@@ -9,8 +9,7 @@ from vectorcode.chunking import StringChunker
 from vectorcode.cli_utils import Config, expand_globs, expand_path
 from vectorcode.common import (
     get_client,
-    get_collection_name,
-    get_embedding_function,
+    get_collection,
     verify_ef,
 )
 
@@ -18,10 +17,7 @@ from vectorcode.common import (
 async def query(configs: Config) -> int:
     client = await get_client(configs)
     try:
-        collection = await client.get_collection(
-            name=get_collection_name(str(configs.project_root)),
-            embedding_function=get_embedding_function(configs),
-        )
+        collection = await get_collection(client, configs, False)
         if not verify_ef(collection, configs):
             return 1
     except (ValueError, InvalidCollectionException):

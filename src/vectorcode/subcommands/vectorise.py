@@ -14,7 +14,7 @@ from chromadb.api.types import IncludeEnum
 
 from vectorcode.chunking import FileChunker
 from vectorcode.cli_utils import Config, expand_globs, expand_path
-from vectorcode.common import get_client, make_or_get_collection, verify_ef
+from vectorcode.common import get_client, get_collection, verify_ef
 
 
 def hash_str(string: str) -> str:
@@ -84,7 +84,7 @@ def show_stats(configs: Config, stats):
 async def vectorise(configs: Config) -> int:
     client = await get_client(configs)
     try:
-        collection = await make_or_get_collection(client, configs)
+        collection = await get_collection(client, configs, True)
     except IndexError:
         print("Failed to get/create the collection. Please check your config.")
         return 1

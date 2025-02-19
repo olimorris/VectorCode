@@ -127,20 +127,30 @@ def get_embedding_function(configs: Config) -> chromadb.EmbeddingFunction:
         return embedding_functions.SentenceTransformerEmbeddingFunction()
 
 
-async def make_or_get_collection(client: AsyncClientAPI, configs: Config):
+async def get_collection(
+    client: AsyncClientAPI, configs: Config, make_if_missing: bool = False
+):
+    """
+    Raise ValueError when make_if_missing is False and no collection is found;
+    Raise IndexError on hash collision.
+    """
     full_path = str(expand_path(str(configs.project_root), absolute=True))
+    collection_name = get_collection_name(full_path)
+    embedding_function = get_embedding_function(configs)
+    collection_meta = {
+        "path": full_path,
+        "hostname": socket.gethostname(),
+        "created-by": "VectorCode",
+        "username": os.environ.get("USER", os.environ.get("USERNAME", "DEFAULT_USER")),
+        "embedding_function": configs.embedding_function,
+    }
+
+    if not make_if_missing:
+        return await client.get_collection(collection_name, embedding_function)
     collection = await client.get_or_create_collection(
-        get_collection_name(full_path),
-        metadata={
-            "path": full_path,
-            "hostname": socket.gethostname(),
-            "created-by": "VectorCode",
-            "username": os.environ.get(
-                "USER", os.environ.get("USERNAME", "DEFAULT_USER")
-            ),
-            "embedding_function": configs.embedding_function,
-        },
-        embedding_function=get_embedding_function(configs),
+        collection_name,
+        metadata=collection_meta,
+        embedding_function=embedding_function,
     )
     if (
         not collection.metadata.get("hostname") == socket.gethostname()

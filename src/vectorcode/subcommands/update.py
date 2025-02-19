@@ -5,20 +5,27 @@ from asyncio import Lock
 
 import tqdm
 from chromadb.api.types import IncludeEnum
+from chromadb.errors import InvalidCollectionException
 
 from vectorcode.cli_utils import Config
-from vectorcode.common import get_client, make_or_get_collection, verify_ef
+from vectorcode.common import get_client, get_collection, verify_ef
 from vectorcode.subcommands.vectorise import chunked_add, show_stats
 
 
 async def update(configs: Config) -> int:
     client = await get_client(configs)
     try:
-        collection = await make_or_get_collection(client, configs)
+        collection = await get_collection(client, configs, False)
     except IndexError:
         print("Failed to get/create the collection. Please check your config.")
         return 1
-    if not verify_ef(collection, configs):
+    except (ValueError, InvalidCollectionException):
+        print(
+            f"There's no existing collection for {configs.project_root}",
+            file=sys.stderr,
+        )
+        return 1
+    if collection is None or not verify_ef(collection, configs):
         return 1
 
     metas = (await collection.get(include=[IncludeEnum.metadatas]))["metadatas"]
