@@ -9,6 +9,7 @@
     * [For Windows Users](#for-windows-users)
   * [Legacy Environments](#legacy-environments)
 * [Getting Started](#getting-started)
+  * [If Anything Goes Wrong...](#if-anything-goes-wrong)
 * [Advanced Usage](#advanced-usage)
   * [Initialising a Project](#initialising-a-project)
   * [Configuring VectorCode](#configuring-vectorcode)
@@ -122,6 +123,15 @@ vectorcode drop
 To see a full list of CLI options and tricks to optimise the retrieval, keep 
 reading or use the `--help` flag.
 
+### If Anything Goes Wrong...
+
+Please try the following and see if any of these fix your issue:
+
+- [`drop`](#removing-a-collection) the collection and 
+  [re-index it](#vectorising-your-code), because there may be changes in the way
+  embeddings are stored in the database;
+- upgrade/re-install the CLI (via `pipx` or however you installed VectorCode).
+
 ## Advanced Usage
 ### Initialising a Project
 For each project, VectorCode creates a collection (similar to tables in
@@ -206,7 +216,7 @@ Run `vectorcode vectorise <path_to_your_file>` or `vectorcode vectorise
   `vectorise` command to specify the maximum number of characters per chunk;
 - overlapping ratio: when the chunk size is set to $c$ and overlapping ratio set
   to $o$, the maximum number of repeated content between 2 adjacent chunks will
-  be $co$. This prevents loss of information due to the key characters being
+  be $c \times o$. This prevents loss of information due to the key characters being
   cut into 2 chunks. To configure this, you may either set `overlap_ratio` in 
   JSON configuration file or use `--overlap`/`-o` parameter.
 

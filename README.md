@@ -44,6 +44,12 @@ and chat plugin available on VSCode and JetBrain products.
 
 ## Documentation
 
+> [!NOTE]
+> The documentation on the `main` branch reflects the code on the latest commit
+> (apologies if I forget to update the docs, but this will be what I aim at). To
+> check for the documentation for the version you're using, you can [check out
+> the corresponding tags](https://github.com/Davidyz/VectorCode/tags).
+
 - For the setup and usage of the command-line tool, see [the CLI documentation](./docs/cli.md);
 - For neovim users, after you've gone through the CLI documentation, please refer to 
   [the neovim plugin documentation](./docs/neovim.md) for further instructions.

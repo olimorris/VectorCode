@@ -133,9 +133,9 @@ Here's how VectorCode may be used with
 > context support, you'll have to modify the prompt structure accordingly to maximise
 > its potential.
 
-To use [async cache](#cached-asynchronous-api), you need to register the buffer.
+To use [async cache](#cached-asynchronous-api), you need to **register the buffer**.
 You may either manually register a buffer using the [user command](#vectorcode-register)
-`VectorCode register`, or set up an autocommand:
+`:VectorCode register`, or set up an autocommand:
 ```lua
 vim.api.nvim_create_autocmd("LspAttach", {
   callback = function()
@@ -298,8 +298,10 @@ The following are the available options for this function:
 - `bufnr`: buffer number. Default: current buffer;
 - `opts`: a table that accepts all options supported by `setup` and the following:
   - `query_cb`: a callback function that takes the buffer number as the only
-    argument and returns the query message. Some examples are bundled in the
-    plugin, accessible in `require("vectorcode.utils")` Default: 
+    argument and returns the query message. This function controls how the retrieval 
+    queries are generated. If you want to make use of LSP, treesitter or
+    diagnostics to retrieve repository context, this is where you can do it! Some 
+    examples are bundled in the plugin, accessible in `require("vectorcode.utils")`. Default: 
     `require("vectorcode.utils").surrounding_lines_cb(-1)`, which queries the full buffer;
   - `events`: a list of events to trigger the query. Default:
     `{"BufWritePost", "InsertEnter", "BufReadPost"}`;
