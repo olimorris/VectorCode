@@ -28,7 +28,6 @@ local function async_runner(query_message, buf_nr)
     return
   end
   local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
-  vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
   local args = {
     "query",
     "--pipe",
