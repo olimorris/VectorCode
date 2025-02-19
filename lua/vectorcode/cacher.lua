@@ -125,22 +125,16 @@ M.register_buffer = vc_config.check_cli_wrap(
       opts =
         vim.tbl_deep_extend("force", opts or {}, vim.b[bufnr].vectorcode_cache.options)
     end
-    opts = vim.tbl_deep_extend(
-      "force",
-      {
-        query_cb = require("vectorcode.utils").surrounding_lines_cb(-1),
-        events = { "BufWritePost", "InsertEnter", "BufReadPost" },
-        debounce = 10,
-        n_query = 1,
-        notify = false,
-        timeout_ms = 5000,
-        exclude_this = true,
-        run_on_register = false,
-      },
-      vc_config.get_user_config(),
-      opts or {},
-      { query_cb = query_cb, events = events, debounce = debounce }
-    )
+    opts = vim.tbl_deep_extend("force", {
+      query_cb = require("vectorcode.utils").surrounding_lines_cb(-1),
+      events = { "BufWritePost", "InsertEnter", "BufReadPost" },
+      debounce = 10,
+      n_query = 1,
+      notify = false,
+      timeout_ms = 5000,
+      exclude_this = true,
+      run_on_register = false,
+    }, vc_config.get_user_config(), opts or {})
 
     if M.buf_is_registered(bufnr) then
       -- update the options and/or query_cb
