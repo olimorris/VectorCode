@@ -6,7 +6,6 @@ import subprocess
 import sys
 from typing import Any, Coroutine
 
-import aiohttp
 import chromadb
 import httpx
 from chromadb.api import AsyncClientAPI
@@ -30,13 +29,13 @@ async def wait_for_server(host, port, timeout=10):
     # Poll the server until it's ready or timeout is reached
     url = f"http://{host}:{port}/api/v1/heartbeat"
     start_time = asyncio.get_event_loop().time()
-    async with aiohttp.ClientSession() as session:
+    async with httpx.AsyncClient() as client:
         while True:
             try:
-                async with session.get(url) as response:
-                    if response.status == 200:
-                        return
-            except aiohttp.ClientConnectionError:
+                response = await client.get(url)
+                if response.status_code == 200:
+                    return
+            except httpx.RequestError:
                 pass  # Server is not yet ready
 
             if asyncio.get_event_loop().time() - start_time > timeout:

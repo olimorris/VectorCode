@@ -11,7 +11,7 @@ dependencies = [
     "shtab",
     "numpy",
     "psutil",
-    "aiohttp",
+    "httpx",
 ]
 requires-python = ">=3.11,<3.14"
 readme = "README.md"
