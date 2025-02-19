@@ -100,6 +100,11 @@ Remember:
           stderr = table.concat(stderr, "\n")
         end
 
+        vim.notify(
+          stderr,
+          vim.log.levels.ERROR,
+          require("vectorcode.config").notify_opts
+        )
         self.chat:add_message({
           role = "user",
           content = string.format(
