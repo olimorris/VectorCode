@@ -19,6 +19,8 @@ from vectorcode.subcommands import check, drop, init, ls, query, update, vectori
 
 async def async_main():
     cli_args = await cli_arg_parser()
+    if cli_args.no_stderr:
+        sys.stderr = open(os.devnull, "w")
     match cli_args.action:
         case CliAction.check:
             return await check(cli_args)

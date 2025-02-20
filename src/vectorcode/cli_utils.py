@@ -34,6 +34,7 @@ class CliAction(Enum):
 
 @dataclass
 class Config:
+    no_stderr: bool = False
     recursive: bool = False
     to_be_deleted: list[str] = field(default_factory=list)
     pipe: bool = False
@@ -126,6 +127,12 @@ async def cli_arg_parser():
         action="store_true",
         default=False,
         help="Print structured output for other programs to process.",
+    )
+    shared_parser.add_argument(
+        "--no_stderr",
+        action="store_true",
+        default=False,
+        help="Supress all STDERR messages.",
     )
     main_parser = argparse.ArgumentParser(
         "vectorcode",
@@ -249,6 +256,7 @@ async def cli_arg_parser():
         case "check":
             check_item = main_args.check_item
     return Config(
+        no_stderr=main_args.no_stderr,
         action=CliAction(main_args.action),
         files=files,
         project_root=main_args.project_root,
