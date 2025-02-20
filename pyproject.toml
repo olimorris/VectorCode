@@ -36,8 +36,9 @@ build-backend = "pdm.backend"
 distribution = true
 
 [tool.pdm.version]
-source = "file"
-path = "./src/vectorcode/__init__.py"
+source = "scm"
+write_to = "./vectorcode/_version.py"
+write_template = "__version__ = '{}'"
 
 [dependency-groups]
 dev = [
@@ -46,5 +47,6 @@ dev = [
     "viztracer>=1.0.0",
     "pre-commit>=4.0.1",
     "pytest>=8.3.4",
+    "pdm-backend>=2.4.3",
 ]
 legacy = ["numpy<2.0.0", "torch<=2.2.2"]
