@@ -5,17 +5,13 @@ local get_config = vc_config.get_user_config
 
 local notify_opts = vc_config.notify_opts
 
----@class VectorCodeResult
----@field path string
----@field document string
-
 M.query = vc_config.check_cli_wrap(
   ---@param query_message string|string[]
-  ---@param opts VectorCodeConfig?
-  ---@param callback fun(result:VectorCodeResult[])?
-  ---@return VectorCodeResult[]
+  ---@param opts VectorCode.QueryOpts?
+  ---@param callback fun(result:VectorCode.Result[])?
+  ---@return VectorCode.Result[]?
   function(query_message, opts, callback)
-    opts = vim.tbl_deep_extend("force", get_config(), opts or {})
+    opts = vim.tbl_deep_extend("force", vc_config.get_query_opts(), opts or {})
     if opts.n_query == 0 then
       if opts.notify then
         vim.notify("n_query is 0. Not sending queries.")

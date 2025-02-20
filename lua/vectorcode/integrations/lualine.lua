@@ -2,7 +2,7 @@ return function()
   return {
     function()
       local message = "VectorCode: "
-      ---@type VectorCodeCache
+      ---@type VectorCode.Cache
       local cache = vim.b.vectorcode_cache
       if cache.enabled then
         if cache.retrieval ~= nil then

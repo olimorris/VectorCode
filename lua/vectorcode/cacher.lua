@@ -2,16 +2,10 @@ local M = {}
 local vc_config = require("vectorcode.config")
 local notify_opts = vc_config.notify_opts
 
----@class VectorCodeCache
----@field enabled boolean
----@field retrieval VectorCodeResult[]?
----@field options VectorCodeRegisterOpts
----@field jobs table<integer, boolean>
----@field last_run integer?
-
 ---@param bufnr integer
 local function kill_jobs(bufnr)
-  local cache = vim.b[bufnr].vectorcode_cache ---@cast cache VectorCodeCache
+  ---@type VectorCode.Cache?
+  local cache = vim.b[bufnr].vectorcode_cache
   if cache ~= nil then
     for job_pid, is_running in pairs(cache.jobs) do
       if is_running == true then
@@ -54,7 +48,7 @@ local function async_runner(query_message, buf_nr)
       end
 
       vim.schedule(function()
-        ---@type VectorCodeCache
+        ---@type VectorCode.Cache
         local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
         cache.jobs[self.pid] = nil
         vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
@@ -77,7 +71,7 @@ local function async_runner(query_message, buf_nr)
         return
       end
       vim.schedule(function()
-        ---@type VectorCodeCache
+        ---@type VectorCode.Cache
         local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
         cache.retrieval = json or {}
         vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
@@ -93,7 +87,7 @@ local function async_runner(query_message, buf_nr)
   })
   vim.schedule(function()
     job:start()
-    ---@type VectorCodeCache
+    ---@type VectorCode.Cache
     local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
     cache.jobs[job.pid] = true
     if cache.options.notify then
@@ -108,14 +102,9 @@ local function async_runner(query_message, buf_nr)
   end)
 end
 
----@class VectorCodeRegisterOpts: VectorCodeConfig
----@field query_cb VectorCodeQueryCallback
----@field debounce integer?
----@field run_on_register boolean
-
 M.register_buffer = vc_config.check_cli_wrap(
   ---@param bufnr integer?
-  ---@param opts VectorCodeRegisterOpts?
+  ---@param opts VectorCode.RegisterOpts?
   function(bufnr, opts)
     if bufnr == 0 or bufnr == nil then
       bufnr = vim.api.nvim_get_current_buf()
@@ -124,16 +113,8 @@ M.register_buffer = vc_config.check_cli_wrap(
       opts =
         vim.tbl_deep_extend("force", opts or {}, vim.b[bufnr].vectorcode_cache.options)
     end
-    opts = vim.tbl_deep_extend("force", {
-      query_cb = require("vectorcode.utils").surrounding_lines_cb(-1),
-      events = { "BufWritePost", "InsertEnter", "BufReadPost" },
-      debounce = 10,
-      n_query = 1,
-      notify = false,
-      timeout_ms = 5000,
-      exclude_this = true,
-      run_on_register = false,
-    }, vc_config.get_user_config(), opts or {})
+    opts =
+      vim.tbl_deep_extend("force", vc_config.get_user_config().async_opts, opts or {})
 
     if M.buf_is_registered(bufnr) then
       -- update the options and/or query_cb
@@ -148,7 +129,7 @@ M.register_buffer = vc_config.check_cli_wrap(
       end)
     else
       vim.schedule(function()
-        ---@type VectorCodeCache
+        ---@type VectorCode.Cache
         vim.api.nvim_buf_set_var(bufnr, "vectorcode_cache", {
           enabled = true,
           retrieval = nil,
@@ -173,7 +154,7 @@ M.register_buffer = vc_config.check_cli_wrap(
             "buffer vectorcode cache not registered"
           )
           vim.schedule(function()
-            local cache = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache") ---@cast cache VectorCodeCache
+            local cache = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache") ---@cast cache VectorCode.Cache
             if
               cache.last_run == nil
               or (vim.uv.clock_gettime("realtime").sec - cache.last_run)
@@ -239,14 +220,14 @@ end
 
 M.query_from_cache = vc_config.check_cli_wrap(
   ---@param bufnr integer?
-  ---@return VectorCodeResult[]
+  ---@return VectorCode.Result[]
   function(bufnr)
     local result = {}
     if bufnr == 0 or bufnr == nil then
       bufnr = vim.api.nvim_get_current_buf()
     end
     if M.buf_is_registered(bufnr) then
-      ---@type VectorCodeCache
+      ---@type VectorCode.Cache
       local vectorcode_cache = vim.api.nvim_buf_get_var(bufnr, "vectorcode_cache")
       result = vectorcode_cache.retrieval or {}
       if vectorcode_cache.options.notify then
@@ -262,7 +243,7 @@ M.query_from_cache = vc_config.check_cli_wrap(
 )
 
 ---@param bufnr integer
----@param component_cb (fun(result:VectorCodeResult):string)?
+---@param component_cb (fun(result:VectorCode.Result):string)?
 ---@return {content:string, count:integer}
 function M.make_prompt_component(bufnr, component_cb)
   if bufnr == 0 or bufnr == nil then
@@ -272,7 +253,7 @@ function M.make_prompt_component(bufnr, component_cb)
     return { content = "", count = 0 }
   end
   if component_cb == nil then
-    ---@type fun(result:VectorCodeResult):string
+    ---@type fun(result:VectorCode.Result):string
     component_cb = function(result)
       return "<|file_sep|>" .. result.path .. "\n" .. result.document
     end

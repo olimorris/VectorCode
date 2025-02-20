@@ -160,7 +160,7 @@ end)
 
 return {
   chat = {
-    ---@param component_cb (fun(result:VectorCodeResult):string)?
+    ---@param component_cb (fun(result:VectorCode.Result):string)?
     make_slash_command = check_cli_wrap(function(component_cb)
       return {
         description = "Add relevant files from the codebase.",
