@@ -8,6 +8,7 @@ local config = {
     notify = false,
     query_cb = require("vectorcode.utils").make_surrounding_lines_cb(-1),
     run_on_register = false,
+    single_job = false,
   },
   events = { "BufWritePost", "InsertEnter", "BufReadPost" },
   exclude_this = true,

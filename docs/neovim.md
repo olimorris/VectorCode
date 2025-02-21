@@ -323,7 +323,10 @@ The following are the available options for this function:
   - `query_cb`: a callback function that accepts the buffer ID and returns the query message(s). Default: `require("vectorcode.utils").make_surrounding_lines_cb(-1)`;
   - `events`: list of autocommand events that triggers the query. Default: `{"BufWritePost", "InsertEnter", "BufReadPost"}`;
   - `run_on_register`: whether to run the query when the buffer is registered.
-    Default: `false`.
+    Default: `false`;
+  - `single_job`: boolean. If this is set to `true`, there will only be one running job
+    for each buffer, and when a new job is triggered, the last-running job will be
+    cancelled. Default: `false`.
 
 
 #### `query_from_cache(bufnr?)`

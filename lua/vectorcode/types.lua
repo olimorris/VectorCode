@@ -22,5 +22,6 @@
 ---@class VectorCode.RegisterOpts: VectorCode.QueryOpts
 ---@field debounce integer
 ---@field events string|string[]
+---@field single_job boolean
 ---@field query_cb VectorCode.QueryCallback
 ---@field run_on_register boolean
