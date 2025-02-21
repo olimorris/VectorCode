@@ -1,4 +1,6 @@
-return function()
+---@param opts {show_job_count: boolean}?
+return function(opts)
+  opts = vim.tbl_deep_extend("force", { show_job_count = false }, opts or {})
   return {
     function()
       local message = "VectorCode: "
@@ -9,7 +11,11 @@ return function()
           message = message .. tostring(#cache.retrieval)
         end
         if #(vim.tbl_keys(cache.jobs)) > 0 then
-          message = message .. "  "
+          if opts.show_job_count then
+            message = message .. (" (%d) "):format(#vim.tbl_keys(cache.jobs))
+          else
+            message = message .. "  "
+          end
         else
           message = message .. "  "
         end
