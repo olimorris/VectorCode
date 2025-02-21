@@ -10,7 +10,6 @@ local config = {
     run_on_register = false,
     single_job = false,
   },
-  events = { "BufWritePost", "InsertEnter", "BufReadPost" },
   exclude_this = true,
   n_query = 1,
   notify = true,
@@ -48,15 +47,6 @@ return {
     ---@param opts VectorCode.Opts?
     function(opts)
       opts = opts or {}
-      if opts and opts.events then
-        vim.deprecate(
-          "`opts.events`",
-          "`opts.async_opts.events`",
-          "0.3.7",
-          "VectorCode",
-          true
-        )
-      end
       setup_config = vim.tbl_deep_extend("force", config, opts or {})
       for k, v in pairs(setup_config.async_opts) do
         if

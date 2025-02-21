@@ -29,18 +29,6 @@ end
 ---@alias VectorCode.QueryCallback fun(bufnr:integer?):string|string[]
 
 ---@return VectorCode.QueryCallback
-function M.lsp_document_symbol_cb()
-  vim.deprecate(
-    "lsp_document_symbol_cb",
-    "make_lsp_document_symbol_cb",
-    "0.3.7",
-    "VectorCode",
-    true
-  )
-  return M.make_lsp_document_symbol_cb()
-end
-
----@return VectorCode.QueryCallback
 function M.make_lsp_document_symbol_cb()
   return function(bufnr)
     if bufnr == 0 or bufnr == nil then
@@ -53,7 +41,7 @@ function M.make_lsp_document_symbol_cb()
       end
     end
     if not has_documentSymbol then
-      return M.surrounding_lines_cb(-1)(bufnr)
+      return M.make_surrounding_lines_cb(-1)(bufnr)
     end
 
     local result, err = vim.lsp.buf_request_sync(
@@ -70,22 +58,9 @@ function M.make_lsp_document_symbol_cb()
       end)
       return symbols
     else
-      return M.surrounding_lines_cb(20)(bufnr)
+      return M.make_surrounding_lines_cb(20)(bufnr)
     end
   end
-end
-
----@param num_of_lines integer
----@return VectorCode.QueryCallback
-function M.surrounding_lines_cb(num_of_lines)
-  vim.deprecate(
-    "surrounding_lines_cb",
-    "make_surrounding_lines_cb",
-    "0.3.7",
-    "VectorCode",
-    true
-  )
-  return M.make_surrounding_lines_cb(num_of_lines)
 end
 
 ---@param num_of_lines integer

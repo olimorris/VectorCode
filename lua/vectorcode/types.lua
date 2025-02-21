@@ -17,7 +17,6 @@
 
 ---@class VectorCode.Opts : VectorCode.QueryOpts
 ---@field async_opts VectorCode.RegisterOpts
----@field events string|string[]
 
 ---@class VectorCode.RegisterOpts: VectorCode.QueryOpts
 ---@field debounce integer
