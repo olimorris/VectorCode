@@ -9,7 +9,7 @@ local function kill_jobs(bufnr)
   if cache ~= nil then
     for job_pid, is_running in pairs(cache.jobs) do
       if is_running == true then
-        vim.uv.kill(job_pid, 15)
+        vim.uv.kill(tonumber(job_pid) --[[@as integer]], 15)
       end
     end
   end
@@ -50,7 +50,7 @@ local function async_runner(query_message, buf_nr)
       vim.schedule(function()
         ---@type VectorCode.Cache
         local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
-        cache.jobs[self.pid] = nil
+        cache.jobs[tostring(self.pid)] = nil
         vim.api.nvim_buf_set_var(buf_nr, "vectorcode_cache", cache)
       end)
       local ok, json = pcall(
@@ -89,7 +89,7 @@ local function async_runner(query_message, buf_nr)
     job:start()
     ---@type VectorCode.Cache
     local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
-    cache.jobs[job.pid] = true
+    cache.jobs[tostring(job.pid)] = true
     if cache.options.notify then
       vim.notify(
         ("Caching for buffer %d has started."):format(buf_nr),
