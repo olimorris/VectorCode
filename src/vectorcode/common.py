@@ -86,20 +86,14 @@ def get_client(configs: Config) -> Coroutine[Any, Any, AsyncClientAPI]:
     assert configs.host is not None
     assert configs.port is not None
     assert configs.db_path is not None
-    try:
-        settings = {"anonymized_telemetry": False}
-        if isinstance(configs.db_settings, dict):
-            settings.update(configs.db_settings)
-        return chromadb.AsyncHttpClient(
-            host=configs.host or "localhost",
-            port=configs.port or 8000,
-            settings=Settings(**settings),
-        )
-    except ValueError:
-        print(
-            f"Failed to access the chromadb server at {configs.host}:{configs.port}. Please verify your setup and configurations."
-        )
-        sys.exit(1)
+    settings = {"anonymized_telemetry": False}
+    if isinstance(configs.db_settings, dict):
+        settings.update(configs.db_settings)
+    return chromadb.AsyncHttpClient(
+        host=configs.host or "localhost",
+        port=configs.port or 8000,
+        settings=Settings(**settings),
+    )
 
 
 def get_collection_name(full_path: str) -> str:

@@ -26,25 +26,29 @@ async def async_main():
             return await check(cli_args)
     project_dir = await find_project_config_dir(cli_args.project_root or ".")
 
-    if project_dir is not None:
-        if cli_args.project_root is None:
-            cli_args.project_root = str(Path(project_dir).parent.resolve())
+    try:
+        if project_dir is not None:
+            if cli_args.project_root is None:
+                cli_args.project_root = str(Path(project_dir).parent.resolve())
 
-        project_config_file = os.path.join(
-            cli_args.project_root, ".vectorcode", "config.json"
-        )
-        if os.path.isfile(project_config_file):
-            # has project-local config. use it
-            final_configs = await (
-                await load_config_file(project_config_file)
-            ).merge_from(cli_args)
+            project_config_file = os.path.join(
+                cli_args.project_root, ".vectorcode", "config.json"
+            )
+            if os.path.isfile(project_config_file):
+                # has project-local config. use it
+                final_configs = await (
+                    await load_config_file(project_config_file)
+                ).merge_from(cli_args)
+            else:
+                # no project-local config. use global config.
+                final_configs = await (await load_config_file()).merge_from(cli_args)
         else:
-            # no project-local config. use global config.
             final_configs = await (await load_config_file()).merge_from(cli_args)
-    else:
-        final_configs = await (await load_config_file()).merge_from(cli_args)
-        if final_configs.project_root is None:
-            final_configs.project_root = "."
+            if final_configs.project_root is None:
+                final_configs.project_root = "."
+    except IOError as e:
+        traceback.print_exception(e, file=sys.stderr)
+        return 1
 
     server_process = None
     if not try_server(final_configs.host, final_configs.port):

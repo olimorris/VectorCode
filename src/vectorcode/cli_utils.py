@@ -2,7 +2,6 @@ import argparse
 import glob
 import json
 import os
-import sys
 from dataclasses import dataclass, field, fields
 from enum import Enum
 from pathlib import Path
@@ -61,17 +60,18 @@ class Config:
 
     @classmethod
     async def import_from(cls, config_dict: dict[str, Any]) -> "Config":
+        """
+        Raise IOError if db_path is not valid.
+        """
         db_path = config_dict.get("db_path")
         host = config_dict.get("host") or "localhost"
         port = config_dict.get("port") or 8000
         if db_path is None:
             db_path = os.path.expanduser("~/.local/share/vectorcode/chromadb/")
         elif not os.path.isdir(db_path):
-            print(
-                f"{str(db_path)} is not a valid directory!",
-                file=sys.stderr,
+            raise IOError(
+                f"The configured db_path ({str(db_path)}) is not a valid directory."
             )
-            sys.exit(1)
         return Config(
             **{
                 "embedding_function": config_dict.get(
