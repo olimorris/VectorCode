@@ -18,8 +18,7 @@ local make_tool = check_cli_wrap(function(opts)
       setup = function(self)
         local tool = self.tool
         local n_query = tool.request.action.count
-        local keywords =
-          vim.json.decode(tool.request.action.query, { object = true, array = true })
+        local keywords = tool.request.action.query
         vim.list_extend(tool.cmds[1], { "-n", tostring(n_query) })
         vim.list_extend(tool.cmds[1], keywords)
       end,
@@ -29,9 +28,7 @@ local make_tool = check_cli_wrap(function(opts)
         tool = {
           _attr = { name = "vectorcode" },
           action = {
-            _attr = { type = "query" },
-            -- TODO: need to figure out how to make `query` a XML list.
-            query = '["keyword1", "keyword2"]',
+            query = { "keyword1", "keyword2" },
             count = 5,
           },
         },
@@ -40,8 +37,7 @@ local make_tool = check_cli_wrap(function(opts)
         tool = {
           _attr = { name = "vectorcode" },
           action = {
-            _attr = { type = "query" },
-            query = '["keyword1"]',
+            query = { "keyword1" },
             count = 2,
           },
         },
@@ -62,11 +58,11 @@ local make_tool = check_cli_wrap(function(opts)
   - Make sure the tools xml block is **surrounded by ```xml**
   - seperate phrases into distinct keywords when appropriate
   - For a symbol defined/declared in a different file, this tool may be able to find the definition. Add the name of the symbol to the query keywords if needed
-  - the query should be a JSON array of strings. Each string is either a word or a phrase
   - The embeddings are generated from source code, so using keywords that may be used as a variable name or are valid statements in the programming language may help with the retrieval
   - The path of a retrieved file will be wrapped in `<path>` and `</path>` tags. Its content will be right after the `</path>` tag, wrapped by `<content>` and `</content>` tags
   - If you used the tool, tell users that they may need to wait for the results and there will be a virtual text indicator that shows the tool is still running
   - Avoid retrieving one single file because the retrieval mechanism may not be very accurate
+  - When providing answers based on VectorCode results, try to give references such as paths to files and line ranges, unless you're told otherwise
   %s
   %s
 
@@ -119,7 +115,7 @@ Remember:
 
         self.chat:add_message({
           role = "user",
-          content = "I've shared the error message from the VectorCode tool with you.\n",
+          content = "I've shared the error message from the VectorCode tool with you.\nIf any files were returned, it should be safe to ignore these errors.",
         }, { visible = false })
       end,
       success = function(self, cmd, stdout)
