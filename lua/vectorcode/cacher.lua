@@ -21,6 +21,7 @@ local function async_runner(query_message, buf_nr)
   if not vim.b[buf_nr].vectorcode_cache.enabled then
     return
   end
+  ---@type VectorCode.Cache
   local cache = vim.api.nvim_buf_get_var(buf_nr, "vectorcode_cache")
   local args = {
     "query",
@@ -34,7 +35,7 @@ local function async_runner(query_message, buf_nr)
   end
   vim.list_extend(args, query_message)
 
-  if cache.exclude_this then
+  if cache.options.exclude_this then
     vim.list_extend(args, { "--exclude", vim.api.nvim_buf_get_name(buf_nr) })
   end
   local job = require("plenary.job"):new({
