@@ -40,6 +40,9 @@ source = "scm"
 write_to = "./vectorcode/_version.py"
 write_template = "__version__ = '{}'"
 
+[tool.coverage.run]
+omit = ["./tests/*", "src/vectorcode/_version.py", "src/vectorcode/__init__.py"]
+
 [dependency-groups]
 dev = [
     "ipython>=8.31.0",
@@ -48,5 +51,6 @@ dev = [
     "pre-commit>=4.0.1",
     "pytest>=8.3.4",
     "pdm-backend>=2.4.3",
+    "coverage>=7.6.12",
 ]
 legacy = ["numpy<2.0.0", "torch<=2.2.2"]
