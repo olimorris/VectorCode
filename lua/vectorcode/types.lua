@@ -4,7 +4,7 @@
 
 ---@class VectorCode.Cache
 ---@field enabled boolean
----@field jobs table<string, boolean>
+---@field jobs table<integer, boolean>
 ---@field last_run integer?
 ---@field options VectorCode.RegisterOpts
 ---@field retrieval VectorCode.Result[]?

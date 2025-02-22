@@ -27,6 +27,8 @@
     * [`query_from_cache(bufnr?)`](#query_from_cachebufnr)
     * [`async_check(check_item?, on_success?, on_failure?)`](#async_checkcheck_item-on_success-on_failure)
     * [`buf_is_registered(bufnr?)`](#buf_is_registeredbufnr)
+    * [`buf_is_enabled(bufnr?)`](#buf_is_enabledbufnr)
+    * [`buf_job_count(bufnr?)`](#buf_job_countbufnr)
     * [`make_prompt_component(bufnr?, component_cb?)`](#make_prompt_componentbufnr-component_cb)
 * [Integrations](#integrations)
 
@@ -302,7 +304,8 @@ nothing.
 ### Cached Asynchronous API
 
 The async cache mechanism helps mitigate the issue where the `query` API may
-take too long and block the main thread.
+take too long and block the main thread. The following are the functions
+available through the `require("vectorcode.cacher")` module.
 
 #### `register_buffer(bufnr?, opts?)`
 This function registers a buffer to be cached by VectorCode.
@@ -332,10 +335,6 @@ The following are the available options for this function:
 #### `query_from_cache(bufnr?)`
 This function queries VectorCode from cache.
 
-```lua
-require("vectorcode.cacher").query_from_cache()
-```
-
 The following are the available options for this function:
 - `bufnr`: buffer number. Default: current buffer.
 
@@ -348,8 +347,8 @@ This function checks if VectorCode has been configured properly for your project
 ```lua 
 require("vectorcode.cacher").async_check(
     "config", 
-    do_something(),
-    do_something_else()
+    do_something(), -- on success
+    do_something_else()  -- on failure
 )
 ```
 
@@ -362,13 +361,21 @@ The following are the available options for this function:
 #### `buf_is_registered(bufnr?)`
 This function checks if a buffer has been registered with VectorCode.
 
-```lua 
-require("vectorcode.cacher").buf_is_registered()
-```
-
 The following are the available options for this function:
 - `bufnr`: buffer number. Default: current buffer.
 Return value: `true` if registered, `false` otherwise.
+
+#### `buf_is_enabled(bufnr?)`
+This function checks if a buffer has been enabled with VectorCode. It is slightly
+different from `buf_is_registered`, because it does not guarantee VectorCode is actively
+caching the content of the buffer. It is the same as `buf_is_registered && not is_paused`.
+
+The following are the available options for this function:
+- `bufnr`: buffer number. Default: current buffer.
+Return value: `true` if enabled, `false` otherwise.
+
+#### `buf_job_count(bufnr?)`
+Returns the number of running jobs in the background.
 
 #### `make_prompt_component(bufnr?, component_cb?)`
 Compile the retrieval results into a string.

@@ -1,18 +1,19 @@
 ---@param opts {show_job_count: boolean}?
 return function(opts)
   opts = vim.tbl_deep_extend("force", { show_job_count = false }, opts or {})
+  local cacher = require("vectorcode.cacher")
   return {
     function()
       local message = "VectorCode: "
-      ---@type VectorCode.Cache
-      local cache = vim.b.vectorcode_cache
-      if cache.enabled then
-        if cache.retrieval ~= nil then
-          message = message .. tostring(#cache.retrieval)
+      if cacher.buf_is_enabled(0) then
+        local retrieval = cacher.query_from_cache(0, { notify = false })
+        if retrieval then
+          message = message .. tostring(#retrieval)
         end
-        if #(vim.tbl_keys(cache.jobs)) > 0 then
+        local job_count = cacher.buf_job_count(0)
+        if job_count > 0 then
           if opts.show_job_count then
-            message = message .. (" (%d) "):format(#vim.tbl_keys(cache.jobs))
+            message = message .. (" (%d) "):format(job_count)
           else
             message = message .. "  "
           end
@@ -25,7 +26,7 @@ return function(opts)
       return message
     end,
     cond = function()
-      return vim.b.vectorcode_cache ~= nil
+      return cacher.buf_is_registered()
     end,
   }
 end
