@@ -19,6 +19,9 @@ local make_tool = check_cli_wrap(function(opts)
         local tool = self.tool
         local n_query = tool.request.action.count
         local keywords = tool.request.action.query
+        if type(keywords) == "string" then
+          keywords = { keywords }
+        end
         vim.list_extend(tool.cmds[1], { "-n", tostring(n_query) })
         vim.list_extend(tool.cmds[1], keywords)
       end,
