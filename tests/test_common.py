@@ -108,6 +108,22 @@ async def test_get_client():
             host="test_host", port=1234, settings=Settings(anonymized_telemetry=True)
         )
 
+        # Test with multiple db_settings, including an invalid one.  The invalid one
+        # should be filtered out inside get_client.
+        config = Config(
+            host="test_host",
+            port=1234,
+            db_path="test_db",
+            db_settings={"anonymized_telemetry": True, "other_setting": "value"},
+        )
+        client = await get_client(config)
+        assert isinstance(client, AsyncClientAPI)
+        MockAsyncHttpClient.assert_called_with(
+            host="test_host",
+            port=1234,
+            settings=Settings(anonymized_telemetry=True),
+        )
+
 
 def test_verify_ef():
     # Mocking AsyncCollection and Config
@@ -259,15 +275,21 @@ async def test_start_server():
             # Assert that subprocess.Popen was called with the correct arguments
             MockPopen.assert_called_once()
             args, kwargs = MockPopen.call_args
-            assert args[0][0] == sys.executable
-            assert args[0][2] == "chromadb.cli.cli"
-            assert args[0][4] == "--host"
-            assert args[0][5] == "localhost"
-            assert args[0][6] == "--port"
-            assert args[0][7] == str(12345)  # Check the mocked port
-            assert args[0][8] == "--path"
-            assert args[0][9] == temp_dir
-            assert "--log-path" in args[0]
+            expected_args = [
+                sys.executable,
+                "-m",
+                "chromadb.cli.cli",
+                "run",
+                "--host",
+                "localhost",
+                "--port",
+                str(12345),  # Check the mocked port
+                "--path",
+                temp_dir,
+                "--log-path",
+                os.path.join(temp_dir, "chroma.log"),
+            ]
+            assert args[0][: len(expected_args)] == expected_args
             assert kwargs["stdout"] == subprocess.DEVNULL
             assert kwargs["stderr"] == sys.stderr
             assert "ANONYMIZED_TELEMETRY" in kwargs["env"]

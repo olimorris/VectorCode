@@ -22,7 +22,7 @@ from vectorcode.cli_utils import (
 async def test_config_import_from():
     with tempfile.TemporaryDirectory(dir="/tmp") as temp_dir:
         db_path = os.path.join(temp_dir, "test_db")
-        os.makedirs(db_path, exist_ok=True)  # Create the directory
+        os.makedirs(db_path, exist_ok=True)
         config_dict: Dict[str, Any] = {
             "db_path": db_path,
             "host": "test_host",
@@ -58,14 +58,57 @@ async def test_config_import_from_invalid_path():
 
 
 @pytest.mark.asyncio
+async def test_config_import_from_db_path_is_file():
+    with tempfile.TemporaryDirectory(dir="/tmp") as temp_dir:
+        db_path = os.path.join(temp_dir, "test_db_file")
+        with open(db_path, "w") as f:
+            f.write("test")
+
+        config_dict: Dict[str, Any] = {"db_path": db_path}
+        with pytest.raises(IOError):
+            await Config.import_from(config_dict)
+
+
+@pytest.mark.asyncio
 async def test_config_merge_from():
     config1 = Config(host="host1", port=8001, n_result=5)
-    config2 = Config(host="host2", port=None, query=["test"])  # port is None
+    config2 = Config(host="host2", port=None, query=["test"])
     merged_config = await config1.merge_from(config2)
     assert merged_config.host == "host2"
     assert merged_config.port == 8001  # port from config1 should be retained
     assert merged_config.n_result == 5
     assert merged_config.query == ["test"]
+
+
+@pytest.mark.asyncio
+async def test_config_merge_from_new_fields():
+    config1 = Config(host="host1", port=8001)
+    config2 = Config(query=["test"], n_result=10, recursive=True)
+    merged_config = await config1.merge_from(config2)
+    assert merged_config.host == "host1"
+    assert merged_config.port == 8001
+    assert merged_config.query == ["test"]
+    assert merged_config.n_result == 10
+    assert merged_config.recursive
+
+
+@pytest.mark.asyncio
+async def test_config_import_from_missing_keys():
+    config_dict: Dict[str, Any] = {}  # Empty dictionary, all keys missing
+    config = await Config.import_from(config_dict)
+
+    # Assert that default values are used
+    assert config.embedding_function == "SentenceTransformerEmbeddingFunction"
+    assert config.embedding_params == {}
+    assert config.host == "localhost"
+    assert config.port == 8000
+    assert config.db_path == os.path.expanduser("~/.local/share/vectorcode/chromadb/")
+    assert config.chunk_size == -1
+    assert config.overlap_ratio == 0.2
+    assert config.query_multiplier == -1
+    assert config.reranker is None
+    assert config.reranker_params == {}
+    assert config.db_settings is None
 
 
 def test_expand_envs_in_dict():
@@ -74,6 +117,16 @@ def test_expand_envs_in_dict():
     expand_envs_in_dict(d)
     assert d["key1"] == "test_value"
     assert d["key2"]["nested_key"] == "test_value"
+
+    d = {"key3": "$NON_EXISTENT_VAR"}
+    expand_envs_in_dict(d)
+    assert d["key3"] == "$NON_EXISTENT_VAR"  # Should remain unchanged
+
+    d = {"key4": "$TEST_VAR2"}
+    expand_envs_in_dict(d)
+    assert d["key4"] == "$TEST_VAR2"  # Should remain unchanged
+
+    del os.environ["TEST_VAR"]  # Clean up the env
 
 
 @pytest.mark.asyncio
@@ -112,14 +165,26 @@ async def test_expand_globs():
 
 
 def test_expand_path():
-    with tempfile.TemporaryDirectory(dir="/tmp") as temp_dir:
-        os.environ["TEST_PATH"] = temp_dir
-        path = "$TEST_PATH/file.txt"
-        expanded_path = expand_path(path)
-        assert expanded_path == temp_dir + "/file.txt"
+    path_with_user = "~/test_dir"
+    expanded_path = expand_path(path_with_user)
+    assert expanded_path == os.path.join(os.path.expanduser("~"), "test_dir")
 
-        absolute_path = expand_path(path, absolute=True)
-        assert absolute_path == os.path.abspath(temp_dir) + "/file.txt"
+    os.environ["TEST_VAR"] = "test_value"
+    path_with_env = "$TEST_VAR/test_dir"
+    expanded_path = expand_path(path_with_env)
+    assert expanded_path == os.path.join("test_value", "test_dir")
+
+    abs_path = "/tmp/test_dir"
+    expanded_path = expand_path(abs_path)
+    assert expanded_path == abs_path
+
+    rel_path = "test_dir"
+    expanded_path = expand_path(rel_path)
+    assert expanded_path == rel_path
+
+    abs_path = "~/test_dir"
+    expanded_path = expand_path(abs_path, absolute=True)
+    assert expanded_path == os.path.abspath(os.path.expanduser(abs_path))
 
 
 @pytest.mark.asyncio
@@ -160,7 +225,6 @@ async def test_load_config_file_empty_file():
 @pytest.mark.asyncio
 async def test_find_project_config_dir_nested():
     with tempfile.TemporaryDirectory(dir="/tmp") as temp_dir:
-        # Create a nested directory structure
         level1_dir = os.path.join(temp_dir, "level1")
         level2_dir = os.path.join(level1_dir, "level2")
         level3_dir = os.path.join(level2_dir, "level3")
@@ -198,25 +262,6 @@ async def test_expand_globs_mixed_paths():
         expanded_paths = await expand_globs(paths)
         assert len(expanded_paths) == 1
         assert existing_file in expanded_paths
-
-
-@pytest.mark.asyncio
-async def test_config_import_from_missing_keys():
-    config_dict: Dict[str, Any] = {}  # Empty dictionary, all keys missing
-    config = await Config.import_from(config_dict)
-
-    # Assert that default values are used
-    assert config.embedding_function == "SentenceTransformerEmbeddingFunction"
-    assert config.embedding_params == {}
-    assert config.host == "localhost"
-    assert config.port == 8000
-    assert config.db_path == os.path.expanduser("~/.local/share/vectorcode/chromadb/")
-    assert config.chunk_size == -1
-    assert config.overlap_ratio == 0.2
-    assert config.query_multiplier == -1
-    assert config.reranker is None
-    assert config.reranker_params == {}
-    assert config.db_settings is None
 
 
 @pytest.mark.asyncio
