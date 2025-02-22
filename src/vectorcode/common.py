@@ -88,7 +88,10 @@ def get_client(configs: Config) -> Coroutine[Any, Any, AsyncClientAPI]:
     assert configs.db_path is not None
     settings = {"anonymized_telemetry": False}
     if isinstance(configs.db_settings, dict):
-        settings.update(configs.db_settings)
+        valid_settings = {
+            k: v for k, v in configs.db_settings.items() if k in Settings.__fields__
+        }
+        settings.update(valid_settings)
     return chromadb.AsyncHttpClient(
         host=configs.host or "localhost",
         port=configs.port or 8000,
