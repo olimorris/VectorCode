@@ -6,10 +6,14 @@ local get_config = vc_config.get_user_config
 local notify_opts = vc_config.notify_opts
 
 M.query = vc_config.check_cli_wrap(
-  ---@param query_message string|string[]
-  ---@param opts VectorCode.QueryOpts?
-  ---@param callback fun(result:VectorCode.Result[])?
-  ---@return VectorCode.Result[]?
+  ---This function wraps the `query` subcommand of the VectorCode CLI. When used without the `callback` parameter,
+  ---this function works as a synchronous function and return the results. Otherwise, this function will run async
+  ---and the results are accessible by the `callback` function (the results will be passed as the argument to the
+  ---callback).
+  ---@param query_message string|string[] Query message(s) to send to the `vecctorcode query` command
+  ---@param opts VectorCode.QueryOpts? A table of config options. If nil, the default config or `setup` config will be used.
+  ---@param callback fun(result:VectorCode.Result[])? Use the result async style.
+  ---@return VectorCode.Result[]? An array of results.
   function(query_message, opts, callback)
     opts = vim.tbl_deep_extend("force", vc_config.get_query_opts(), opts or {})
     if opts.n_query == 0 then
@@ -83,8 +87,12 @@ M.query = vc_config.check_cli_wrap(
 )
 
 M.vectorise = vc_config.check_cli_wrap(
-  ---@param files string|string[]
-  ---@param project_root string?
+  ---This function wraps the `vectorise` subcommand. By default this function doesn't pass a `--project_root` flag.
+  ---The command will be run from the current working directory, and the normal project root detection logic in the
+  ---CLI will work as normal. You may also pass a `project_root` as the second argument, in which case the
+  ---`--project_root` will be passed.
+  ---@param files string|string[] Files to vectorise.
+  ---@param project_root string? Add the `--project_root` flag and the passed argument to the command.
   function(files, project_root)
     local args = { "--pipe", "vectorise" }
     if project_root ~= nil then
@@ -147,8 +155,8 @@ M.vectorise = vc_config.check_cli_wrap(
   end
 )
 
----@param check_item string?
----@param stdout_cb fun(stdout: vim.SystemCompleted)?
+---@param check_item string? See `vectorcode check` documentation.
+---@param stdout_cb fun(stdout: vim.SystemCompleted)? Gives user access to the exit code, stdout and signal.
 ---@return boolean
 function M.check(check_item, stdout_cb)
   if not vc_config.has_cli() then

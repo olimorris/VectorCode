@@ -107,8 +107,14 @@ local function async_runner(query_message, buf_nr)
 end
 
 M.register_buffer = vc_config.check_cli_wrap(
-  ---@param bufnr integer?
-  ---@param opts VectorCode.RegisterOpts?
+  ---This function registers a buffer to be cached by VectorCode. The
+  ---registered buffer can be aquired by the `query_from_cache` API.
+  ---The retrieval of the files occurs in the background, so this
+  ---function will not block the main thread.
+  ---
+  ---NOTE: this function uses an autocommand to track the changes to the buffer and trigger retrieval.
+  ---@param bufnr integer? Default to the current buffer.
+  ---@param opts VectorCode.RegisterOpts? Async options.
   function(bufnr, opts)
     if bufnr == 0 or bufnr == nil then
       bufnr = vim.api.nvim_get_current_buf()
@@ -166,6 +172,10 @@ M.register_buffer = vc_config.check_cli_wrap(
 )
 
 M.deregister_buffer = vc_config.check_cli_wrap(
+  ---This function deregisters a buffer from VectorCode. This will kill all
+  ---running jobs, delete cached results, and deregister the autocommands
+  ---associated with the buffer. If the caching has not been registered, an
+  ---error notification will bef ired.
   ---@param bufnr integer?
   ---@param opts {notify:boolean}
   function(bufnr, opts)
@@ -204,6 +214,8 @@ M.buf_is_registered = function(bufnr)
 end
 
 M.query_from_cache = vc_config.check_cli_wrap(
+  ---This function queries VectorCode from cache. Returns an array of results. Each item
+  ---of the array is in the format of `{path="path/to/your/code.lua", document="document content"}`.
   ---@param bufnr integer?
   ---@param opts {notify: boolean}?
   ---@return VectorCode.Result[]
@@ -233,8 +245,11 @@ M.query_from_cache = vc_config.check_cli_wrap(
   end
 )
 
+---@alias ComponentCallback fun(result:VectorCode.Result):string
+
+---Compile the retrieval results into a string.
 ---@param bufnr integer
----@param component_cb (fun(result:VectorCode.Result):string)?
+---@param component_cb ComponentCallback? The component callback that formats a retrieval result.
 ---@return {content:string, count:integer}
 function M.make_prompt_component(bufnr, component_cb)
   if bufnr == 0 or bufnr == nil then
@@ -257,6 +272,8 @@ function M.make_prompt_component(bufnr, component_cb)
   return { content = final_component, count = #retrieval }
 end
 
+---Checks if VectorCode has been configured properly for your project.
+---See the CLI manual for details.
 ---@param check_item string?
 ---@param on_success fun(out: vim.SystemCompleted)?
 ---@param on_failure fun(out: vim.SystemCompleted?)?

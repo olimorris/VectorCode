@@ -28,6 +28,9 @@ end
 
 ---@alias VectorCode.QueryCallback fun(bufnr:integer?):string|string[]
 
+---Retrieves all LSP document symbols from the current buffer, and use the symbols
+---as query messages. Fallbacks to `make_surrounding_lines_cb` if
+---`textDocument_documentSymbol` is not accessible.
 ---@return VectorCode.QueryCallback
 function M.make_lsp_document_symbol_cb()
   return function(bufnr)
@@ -63,7 +66,8 @@ function M.make_lsp_document_symbol_cb()
   end
 end
 
----@param num_of_lines integer
+---Use the lines above and below the current line as the query messages.
+---@param num_of_lines integer The number of lines to include in the query.
 ---@return VectorCode.QueryCallback
 function M.make_surrounding_lines_cb(num_of_lines)
   return function(bufnr)
