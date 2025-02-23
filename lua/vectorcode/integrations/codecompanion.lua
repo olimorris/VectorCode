@@ -17,7 +17,7 @@ local make_tool = check_cli_wrap(function(opts)
       ---@param self CodeCompanion.Tools
       setup = function(self)
         local tool = self.tool
-        local n_query = tool.request.action.count
+        local n_query = tool.request.action.count or opts.default_num
         local keywords = tool.request.action.query
         if type(keywords) == "string" then
           keywords = { keywords }
