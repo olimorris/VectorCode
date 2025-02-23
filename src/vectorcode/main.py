@@ -21,9 +21,6 @@ async def async_main():
     cli_args = await cli_arg_parser()
     if cli_args.no_stderr:
         sys.stderr = open(os.devnull, "w")
-    match cli_args.action:
-        case CliAction.check:
-            return await check(cli_args)
     project_dir = await find_project_config_dir(cli_args.project_root or ".")
 
     try:
@@ -49,6 +46,15 @@ async def async_main():
     except IOError as e:
         traceback.print_exception(e, file=sys.stderr)
         return 1
+
+    match cli_args.action:
+        case CliAction.check:
+            return await check(cli_args)
+        case CliAction.init:
+            return await init(cli_args)
+        case CliAction.version:
+            print(__version__)
+            return 0
 
     server_process = None
     if not try_server(final_configs.host, final_configs.port):
@@ -80,13 +86,8 @@ async def async_main():
                 return_val = await drop(final_configs)
             case CliAction.ls:
                 return_val = await ls(final_configs)
-            case CliAction.init:
-                return_val = await init(final_configs)
             case CliAction.update:
                 return_val = await update(final_configs)
-            case CliAction.version:
-                print(__version__)
-                return_val = 0
     except Exception as e:
         return_val = 1
         traceback.print_exception(e, file=sys.stderr)
