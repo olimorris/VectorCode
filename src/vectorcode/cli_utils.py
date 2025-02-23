@@ -199,10 +199,17 @@ async def cli_arg_parser():
 
     subparsers.add_parser("drop", parents=[shared_parser], help="Remove a collection.")
 
-    subparsers.add_parser(
+    init_parser = subparsers.add_parser(
         "init",
         parents=[shared_parser],
         help="Initialise a directory as VectorCode project root.",
+    )
+    init_parser.add_argument(
+        "--force",
+        "-f",
+        action="store_true",
+        default=False,
+        help="Wipe current project config and overwrite with global config (if it exists).",
     )
 
     subparsers.add_parser(
@@ -255,6 +262,8 @@ async def cli_arg_parser():
             absolute = main_args.absolute
         case "check":
             check_item = main_args.check_item
+        case "init":
+            force = main_args.force
     return Config(
         no_stderr=main_args.no_stderr,
         action=CliAction(main_args.action),
