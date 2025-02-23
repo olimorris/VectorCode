@@ -41,7 +41,12 @@ write_to = "./vectorcode/_version.py"
 write_template = "__version__ = '{}'"
 
 [tool.coverage.run]
-omit = ["./tests/*", "src/vectorcode/_version.py", "src/vectorcode/__init__.py"]
+omit = [
+    "./tests/*",
+    "src/vectorcode/_version.py",
+    "src/vectorcode/__init__.py",
+    "/tmp/*",
+]
 
 [dependency-groups]
 dev = [
