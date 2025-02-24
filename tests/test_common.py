@@ -67,10 +67,11 @@ def test_get_embedding_function():
     assert "SentenceTransformerEmbeddingFunction" in str(type(embedding_function))
 
 
-def test_try_server():
+@pytest.mark.asyncio
+async def test_try_server():
     # This test requires a server to be running, so it's difficult to make it truly isolated.
     # For now, let's just check that it returns False when the server is not running on a common port.
-    assert not try_server("localhost", 9999)
+    assert not await try_server("localhost", 9999)
 
 
 @pytest.mark.asyncio
@@ -159,27 +160,30 @@ def test_verify_ef():
 
 
 @patch("socket.socket")
-def test_try_server_mocked(mock_socket):
-    # Mocking httpx.Client and its get method to simulate a successful connection
-    with patch("httpx.Client") as mock_client:
+@pytest.mark.asyncio
+async def test_try_server_mocked(mock_socket):
+    # Mocking httpx.AsyncClient and its get method to simulate a successful connection
+    with patch("httpx.AsyncClient") as mock_client:
         mock_response = MagicMock()
         mock_response.status_code = 200
-        mock_client.return_value.__enter__.return_value.get.return_value = mock_response
-        assert try_server("localhost", 8000) is True
+        mock_client.return_value.__aenter__.return_value.get.return_value = (
+            mock_response
+        )
+        assert await try_server("localhost", 8000) is True
 
-    # Mocking httpx.Client to raise a ConnectError
-    with patch("httpx.Client") as mock_client:
-        mock_client.return_value.__enter__.return_value.get.side_effect = (
+    # Mocking httpx.AsyncClient to raise a ConnectError
+    with patch("httpx.AsyncClient") as mock_client:
+        mock_client.return_value.__aenter__.return_value.get.side_effect = (
             httpx.ConnectError("Simulated connection error")
         )
-        assert try_server("localhost", 8000) is False
+        assert await try_server("localhost", 8000) is False
 
-    # Mocking httpx.Client to raise a ConnectTimeout
-    with patch("httpx.Client") as mock_client:
-        mock_client.return_value.__enter__.return_value.get.side_effect = (
+    # Mocking httpx.AsyncClient to raise a ConnectTimeout
+    with patch("httpx.AsyncClient") as mock_client:
+        mock_client.return_value.__aenter__.return_value.get.side_effect = (
             httpx.ConnectTimeout("Simulated connection timeout")
         )
-        assert try_server("localhost", 8000) is False
+        assert await try_server("localhost", 8000) is False
 
 
 @pytest.mark.asyncio
@@ -246,7 +250,7 @@ async def test_get_collection():
 async def test_start_server():
     # Mock subprocess.Popen
     with (
-        patch("subprocess.Popen") as MockPopen,
+        patch("asyncio.create_subprocess_exec") as MockCreateProcess,
         patch("asyncio.sleep"),
         patch("socket.socket") as MockSocket,
         patch("vectorcode.common.wait_for_server") as MockWaitForServer,
@@ -256,9 +260,10 @@ async def test_start_server():
         mock_socket.getsockname.return_value = ("localhost", 12345)  # Mock port
         MockSocket.return_value.__enter__.return_value = mock_socket
 
-        # Mock the Popen object
+        # Mock the process object
         mock_process = MagicMock()
-        MockPopen.return_value = mock_process
+        mock_process.returncode = 0  # Simulate successful execution
+        MockCreateProcess.return_value = mock_process
 
         # Create a config object
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -272,9 +277,9 @@ async def test_start_server():
             # Call start_server
             process = await start_server(config)
 
-            # Assert that subprocess.Popen was called with the correct arguments
-            MockPopen.assert_called_once()
-            args, kwargs = MockPopen.call_args
+            # Assert that asyncio.create_subprocess_exec was called with the correct arguments
+            MockCreateProcess.assert_called_once()
+            args, kwargs = MockCreateProcess.call_args
             expected_args = [
                 sys.executable,
                 "-m",
@@ -289,7 +294,8 @@ async def test_start_server():
                 "--log-path",
                 os.path.join(temp_dir, "chroma.log"),
             ]
-            assert args[0][: len(expected_args)] == expected_args
+            assert args[0] == sys.executable
+            assert tuple(args[1:]) == tuple(expected_args[1:])
             assert kwargs["stdout"] == subprocess.DEVNULL
             assert kwargs["stderr"] == sys.stderr
             assert "ANONYMIZED_TELEMETRY" in kwargs["env"]

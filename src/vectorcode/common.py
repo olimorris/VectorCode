@@ -16,11 +16,12 @@ from chromadb.utils import embedding_functions
 from vectorcode.cli_utils import Config, expand_path
 
 
-def try_server(host: str, port: int):
+async def try_server(host: str, port: int):
     url = f"http://{host}:{port}/api/v1/heartbeat"
     try:
-        with httpx.Client() as client:
-            return client.get(url=url).status_code == 200
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url=url)
+            return response.status_code == 200
     except (httpx.ConnectError, httpx.ConnectTimeout):
         return False
 
@@ -58,21 +59,19 @@ async def start_server(configs: Config):
         s.bind(("", 0))  # OS selects a free ephemeral port
         configs.port = int(s.getsockname()[1])
     env.update({"ANONYMIZED_TELEMETRY": "False"})
-    process = subprocess.Popen(
-        [
-            sys.executable,
-            "-m",
-            "chromadb.cli.cli",
-            "run",
-            "--host",
-            "localhost",
-            "--port",
-            str(configs.port),
-            "--path",
-            db_path,
-            "--log-path",
-            os.path.join(str(configs.project_root), "chroma.log"),
-        ],
+    process = await asyncio.create_subprocess_exec(
+        sys.executable,
+        "-m",
+        "chromadb.cli.cli",
+        "run",
+        "--host",
+        "localhost",
+        "--port",
+        str(configs.port),
+        "--path",
+        db_path,
+        "--log-path",
+        os.path.join(str(configs.project_root), "chroma.log"),
         stdout=subprocess.DEVNULL,
         stderr=sys.stderr,
         env=env,
