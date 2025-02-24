@@ -97,3 +97,7 @@ async def async_main():
 
 def main():
     return asyncio.run(async_main())
+
+
+if __name__ == "__main__":
+    sys.exit(main())
