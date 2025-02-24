@@ -23,7 +23,7 @@ github = "https://github.com/Davidyz/VectorCode"
 documentation = "https://github.com/Davidyz/VectorCode/blob/main/docs/cli.md"
 
 [project.optional-dependencies]
-intel = ['optimum[openvino]']
+intel = ['optimum[openvino]', 'openvino']
 
 [project.scripts]
 vectorcode = "vectorcode.main:main"
