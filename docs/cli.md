@@ -295,10 +295,19 @@ or `vectorcode --print-completion {bash,zsh,tcsh}` to print the completion scrip
 for your shell of choice.
 
 ## Hardware Acceleration
-> This setion covers hardware acceleration when using sentence transformer as
+> This section covers hardware acceleration when using sentence transformer as
 > the embedding backend.
 
-For Nvidia users this should work out of the box.
+For Nvidia users this should work out of the box. If not, try setting the
+following options in the JSON config file:
+```json 
+{
+  "embedding_params": {
+    "backend": "torch",
+    "device": "cuda"
+  },
+}
+```
 
 For Intel users, [sentence transformer](https://www.sbert.net/index.html)
 supports [OpenVINO](https://www.intel.com/content/www/us/en/developer/tools/openvino-toolkit/overview.html) 
@@ -315,6 +324,12 @@ need to configure `SentenceTransformer` to use `openvino` backend. In your
 ```
 This will run the embedding model on your GPU. This is supported even for
 some integrated GPUs.
+
+When using the default embedding function, any options inside the
+`"embedding_params"` will go to the class constructor of `SentenceTransformer`,
+so you can always take a look at 
+[their documentation](https://www.sbert.net/docs/package_reference/sentence_transformer/SentenceTransformer.html#sentence_transformers.SentenceTransformer)
+for detailed information _regardless of your platform_.
 
 ## For Developers
 To develop a tool that makes use of VectorCode, you may find the `--pipe`/`-p`
