@@ -29,6 +29,7 @@ class CliAction(Enum):
     version = "version"
     check = "check"
     update = "update"
+    clean = "clean"
 
 
 @dataclass
@@ -230,6 +231,12 @@ async def cli_arg_parser():
         "update",
         parents=[shared_parser],
         help="Update embeddings in the database for indexed files.",
+    )
+
+    subparsers.add_parser(
+        "clean",
+        parents=[shared_parser],
+        help="Remove empty collections in the database.",
     )
 
     main_args = main_parser.parse_args()
