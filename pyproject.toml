@@ -22,9 +22,6 @@ homepage = "https://github.com/Davidyz/VectorCode"
 github = "https://github.com/Davidyz/VectorCode"
 documentation = "https://github.com/Davidyz/VectorCode/blob/main/docs/cli.md"
 
-[project.optional-dependencies]
-intel = ['optimum[openvino]', 'openvino']
-
 [project.scripts]
 vectorcode = "vectorcode.main:main"
 
@@ -61,3 +58,4 @@ dev = [
     "debugpy>=1.8.12",
 ]
 legacy = ["numpy<2.0.0", "torch<=2.2.2"]
+intel = ['optimum[openvino]', 'openvino']
