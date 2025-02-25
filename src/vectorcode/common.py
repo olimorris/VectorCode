@@ -4,7 +4,7 @@ import os
 import socket
 import subprocess
 import sys
-from typing import Any, Coroutine
+from typing import Any, AsyncGenerator, Coroutine
 
 import chromadb
 import httpx
@@ -14,6 +14,25 @@ from chromadb.config import Settings
 from chromadb.utils import embedding_functions
 
 from vectorcode.cli_utils import Config, expand_path
+
+
+async def get_collections(client: AsyncClientAPI) -> AsyncGenerator[AsyncCollection]:
+    for collection_name in await client.list_collections():
+        collection = await client.get_collection(collection_name)
+        meta = collection.metadata
+        if meta is None:
+            continue
+        if meta.get("created-by") != "VectorCode":
+            continue
+        if meta.get("username") not in (
+            os.environ.get("USER"),
+            os.environ.get("USERNAME"),
+            "DEFAULT_USER",
+        ):
+            continue
+        if meta.get("hostname") != socket.gethostname():
+            continue
+        yield collection
 
 
 async def try_server(host: str, port: int):
