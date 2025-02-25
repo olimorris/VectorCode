@@ -1,5 +1,4 @@
 import asyncio
-import atexit
 import logging
 import os
 import sys
@@ -73,12 +72,6 @@ async def async_main():
         )
         server_process = await start_server(final_configs)
 
-        def terminate():
-            server_process.terminate()
-            server_process.wait()
-
-        atexit.register(terminate)
-
     if final_configs.pipe:
         # NOTE: NNCF (intel GPU acceleration for sentence transformer) keeps showing logs.
         # This disables logs below ERROR so that it doesn't hurt the `pipe` output.
@@ -103,6 +96,9 @@ async def async_main():
         return_val = 1
         traceback.print_exception(e, file=sys.stderr)
     finally:
+        if server_process is not None:
+            server_process.terminate()
+            await server_process.wait()
         return return_val
 
 
