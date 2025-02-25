@@ -155,6 +155,43 @@ M.vectorise = vc_config.check_cli_wrap(
   end
 )
 
+---@param project_root string?
+M.update = vc_config.check_cli_wrap(function(project_root)
+  local args = { "vectorcode", "update" }
+  if
+    type(project_root) == "string"
+    and vim.uv.fs_stat(vim.fs.normalize(project_root)).type == "directory"
+  then
+    vim.list_extend(args, { "--project_root", project_root })
+  end
+  vim.system(args, { stdout = nil, stderr = nil }, function(out)
+    if get_config().notify then
+      vim.schedule(function()
+        if out.code == 0 then
+          vim.notify(
+            "VectorCode embeddings has been updated.",
+            vim.log.levels.INFO,
+            notify_opts
+          )
+        else
+          vim.notify(
+            ("Failed to update the embeddings due to the following error:\n%s"):format(
+              out.stderr
+            ),
+            vim.log.levels.ERROR,
+            notify_opts
+          )
+        end
+      end)
+    end
+  end)
+  if get_config().notify then
+    vim.schedule(function()
+      vim.notify("Updating VectorCode embeddings...", vim.log.levels.INFO, notify_opts)
+    end)
+  end
+end)
+
 ---@param check_item string? See `vectorcode check` documentation.
 ---@param stdout_cb fun(stdout: vim.SystemCompleted)? Gives user access to the exit code, stdout and signal.
 ---@return boolean

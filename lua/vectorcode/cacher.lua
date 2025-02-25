@@ -45,7 +45,7 @@ local function async_runner(query_message, buf_nr)
   local project_root = cache.options.project_root
   if project_root ~= nil then
     assert(
-      vim.fn.isdirectory(vim.fn.expand(project_root)) == 1,
+      vim.uv.fs_stat(vim.fs.normalize(project_root)).type == "directory",
       ("%s is not a valid directory!"):format(project_root)
     )
     vim.list_extend(args, { "--project_root", project_root })

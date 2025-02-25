@@ -22,6 +22,7 @@
   * [Synchronous API](#synchronous-api)
     * [`query(query_message, opts?, callback?)`](#queryquery_message-opts-callback)
     * [`check(check_item?)`](#checkcheck_item)
+    * [`update(project_root?)`](#updateproject_root)
   * [Cached Asynchronous API](#cached-asynchronous-api)
     * [`register_buffer(bufnr?, opts?)`](#register_bufferbufnr-opts)
     * [`query_from_cache(bufnr?)`](#query_from_cachebufnr)
@@ -198,6 +199,9 @@ require("vectorcode").setup({
   n_query = 1,
   notify = true,
   timeout_ms = 5000,
+  on_setup = {
+    update = false, -- set to true to enable update when `setup` is called.
+  }
 })
 ```
 
@@ -214,7 +218,10 @@ The following are the available options for the parameter of this function:
   `false` may lead to an outdated version of the current file being sent to the
   LLM as the prompt, and can lead to generations with outdated information;
 - `async_opts`: default options used when registering buffers. See 
-  [`register_buffer(bufnr?, opts?)`](#register_bufferbufnr-opts) for details. 
+  [`register_buffer(bufnr?, opts?)`](#register_bufferbufnr-opts) for details;
+- `on_setup`: some actions that can be registered to run when `setup` is called.
+  Currently only supports `update`, which calls `vectorcode update` CLI command
+  if [`vectorcode check config`](#checking-project-setup) prints a valid path.
 
 You may notice that a lot of options in `async_opts` are the same as the other
 options in the top-level of the main option table. This is because the top-level
@@ -308,6 +315,15 @@ VectorCode APIs).
 The use of this API is entirely optional. You can totally ignore this and call
 `query` anyway, but if `check` fails, you might be spending the waiting time for
 nothing.
+
+#### `update(project_root?)`
+This function calls `vectorcode update` at the current working directory.
+`--project_root` will be added if the `project_root` parameter is not `nil`.
+This runs async and doesn't block the main UI.
+
+```lua
+require("vectorcode").update()
+```
 
 ### Cached Asynchronous API
 

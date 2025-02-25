@@ -14,5 +14,5 @@ async def check(configs: Config) -> int:
                 print("Failed!", file=sys.stderr)
                 return 1
             else:
-                print(str(Path(project_local_config).parent))
+                print(str(Path(project_local_config).parent), end="")
     return 0

@@ -18,9 +18,13 @@
 ---@field notify boolean Notify on new results and other key moments.
 ---@field timeout_ms number Timeout (in milliseconds) for running a vectorcode command. Default: 5000
 
+---@class VectorCode.OnSetup Some actions that may be configured to run when `setup` is called.
+---@field update boolean `vectorcode update`
+
 ---Options passed to `setup`.
 ---@class VectorCode.Opts : VectorCode.QueryOpts
 ---@field async_opts VectorCode.RegisterOpts Default options to use for registering a new buffer for async cache.
+---@field on_setup VectorCode.OnSetup
 
 ---Options for the registration of an async cache for a buffer.
 ---@class VectorCode.RegisterOpts: VectorCode.QueryOpts

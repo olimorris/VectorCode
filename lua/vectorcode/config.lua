@@ -14,6 +14,7 @@ local config = {
   n_query = 1,
   notify = true,
   timeout_ms = 5000,
+  on_setup = { update = false },
 }
 
 local setup_config = vim.deepcopy(config, true)
@@ -61,6 +62,16 @@ return {
             { [k] = setup_config[k] }
           )
         end
+      end
+      if setup_config.on_setup.update then
+        require("vectorcode").check("config", function(out)
+          if out.code == 0 then
+            local path = string.gsub(out.stdout, "^%s*(.-)%s*$", "%1")
+            if path ~= "" then
+              require("vectorcode").update(path)
+            end
+          end
+        end)
       end
     end
   ),
