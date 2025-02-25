@@ -12,10 +12,6 @@ local function process_args(args)
     if equal then
       local key = string.sub(str, 1, equal - 1)
       local value = string.sub(str, equal + 1) --[[@as any]]
-      local ok, num_val = pcall(tonumber, value)
-      if ok then
-        value = num_val
-      end
       result[key] = value
     end
   end
