@@ -41,6 +41,15 @@ local function async_runner(query_message, buf_nr)
   if cache.options.exclude_this then
     vim.list_extend(args, { "--exclude", vim.api.nvim_buf_get_name(buf_nr) })
   end
+
+  local project_root = cache.options.project_root
+  if project_root ~= nil then
+    assert(
+      vim.fn.isdirectory(vim.fn.expand(project_root)) == 1,
+      ("%s is not a valid directory!"):format(project_root)
+    )
+    vim.list_extend(args, { "--project_root", project_root })
+  end
   local job = require("plenary.job"):new({
     command = "vectorcode",
     args = args,

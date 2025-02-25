@@ -29,3 +29,4 @@
 ---@field single_job boolean Whether to restrict to 1 async job per buffer. Default: false
 ---@field query_cb VectorCode.QueryCallback Function that accepts the buffer ID and returns the query message(s). Default: `require("vectorcode.utils").make_surrounding_lines_cb(-1)`
 ---@field run_on_register boolean Whether to run the query when registering. Default: false
+---@field project_root string?

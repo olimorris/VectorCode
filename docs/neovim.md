@@ -162,7 +162,15 @@ Carefully choose how you register your buffers according to your system specs an
 ## User Command
 ### `VectorCode register`
 
-Register the current buffer for async caching.
+Register the current buffer for async caching. It's possible to register the
+current buffer to a different vectorcode project by passing the `project_root`
+parameter:
+```
+:VectorCode register project_root=path/to/another/project/
+```
+This is useful if you're working on a project that is closely related to a
+different project, for example a utility repository for a main library or a
+documentation repository.
 
 ### `VectorCode deregister`
 
@@ -319,6 +327,9 @@ require("vectorcode.cacher").register_buffer(0, {
 The following are the available options for this function:
 - `bufnr`: buffer number. Default: current buffer;
 - `opts`: accepts a lua table with the following keys:
+  - `project_root`: a string of the path that overrides the detected project root. 
+  Default: `nil`. This is mostly intended to use with the [user command](#vectorcode-register), 
+  and you probably should not use this directly in your config;
   - `exclude_this`: whether to exclude the file you're editing. Default: `true`;
   - `n_query`: number of retrieved documents. Default: `1`;
   - `debounce`: debounce time in milliseconds. Default: `10`;
