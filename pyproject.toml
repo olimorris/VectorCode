@@ -57,5 +57,7 @@ dev = [
     "pytest-asyncio>=0.25.3",
     "debugpy>=1.8.12",
 ]
+
+[project.optional-dependencies]
 legacy = ["numpy<2.0.0", "torch<=2.2.2"]
 intel = ['optimum[openvino]', 'openvino']
