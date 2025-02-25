@@ -45,6 +45,25 @@ async def chunked_add(
                 )
             )["ids"]
         )
+
+    try:
+        with open(full_path_str) as fin:
+            chunks = list(
+                FileChunker(configs.chunk_size, configs.overlap_ratio).chunk(fin)
+            )
+            chunks.append(str(os.path.relpath(full_path_str, configs.project_root)))
+            async with collection_lock:
+                for idx in range(0, len(chunks), max_batch_size):
+                    inserted_chunks = chunks[idx : idx + max_batch_size]
+                    await collection.add(
+                        ids=[get_uuid() for _ in inserted_chunks],
+                        documents=inserted_chunks,
+                        metadatas=[{"path": full_path_str} for _ in inserted_chunks],
+                    )
+    except UnicodeDecodeError:
+        # probably binary. skip it.
+        return
+
     if num_existing_chunks:
         async with collection_lock:
             await collection.delete(where={"path": full_path_str})
@@ -53,17 +72,6 @@ async def chunked_add(
     else:
         async with stats_lock:
             stats["add"] += 1
-    with open(full_path_str) as fin:
-        chunks = list(FileChunker(configs.chunk_size, configs.overlap_ratio).chunk(fin))
-        chunks.append(str(os.path.relpath(full_path_str, configs.project_root)))
-        async with collection_lock:
-            for idx in range(0, len(chunks), max_batch_size):
-                inserted_chunks = chunks[idx : idx + max_batch_size]
-                await collection.add(
-                    ids=[get_uuid() for _ in inserted_chunks],
-                    documents=inserted_chunks,
-                    metadatas=[{"path": full_path_str} for _ in inserted_chunks],
-                )
 
 
 def show_stats(configs: Config, stats):
