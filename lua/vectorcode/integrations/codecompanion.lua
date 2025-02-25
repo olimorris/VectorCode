@@ -1,10 +1,14 @@
----@alias tool_opts {max_num: integer?, default_num: integer?}
+---@alias tool_opts {max_num: integer?, default_num: integer?, include_stderr: boolean?}
 
 local check_cli_wrap = require("vectorcode.config").check_cli_wrap
 
 ---@param opts tool_opts?
 local make_tool = check_cli_wrap(function(opts)
-  opts = vim.tbl_deep_extend("force", { max_num = -1, default_num = 10 }, opts or {})
+  opts = vim.tbl_deep_extend(
+    "force",
+    { max_num = -1, default_num = 10, include_stderr = false },
+    opts or {}
+  )
   local xml2lua = require("codecompanion.utils.xml.xml2lua")
   local capping_message = ""
   if opts.max_num > 0 then
@@ -100,27 +104,34 @@ Remember:
           stderr = table.concat(stderr, "\n")
         end
 
-        vim.notify(
-          stderr,
-          vim.log.levels.ERROR,
-          require("vectorcode.config").notify_opts
-        )
-        self.chat:add_message({
-          role = "user",
-          content = string.format(
-            [[After the VectorCode tool completed, there was an error:
+        if opts.include_stderr then
+          vim.notify(
+            stderr,
+            vim.log.levels.ERROR,
+            require("vectorcode.config").notify_opts
+          )
+          self.chat:add_message({
+            role = "user",
+            content = string.format(
+              [[After the VectorCode tool completed, there was an error:
 <error>
 %s
 </error>
 ]],
-            stderr
-          ),
-        }, { visible = false })
+              stderr
+            ),
+          }, { visible = false })
 
-        self.chat:add_message({
-          role = "user",
-          content = "I've shared the error message from the VectorCode tool with you.\nIf any files were returned, it should be safe to ignore these errors.",
-        }, { visible = false })
+          self.chat:add_message({
+            role = "user",
+            content = "I've shared the error message from the VectorCode tool with you.\n",
+          }, { visible = false })
+        else
+          self.self:add_message({
+            role = "user",
+            content = "There was an error in the execution of the tool, but the user chose to ignore it.",
+          })
+        end
       end,
       success = function(self, cmd, stdout)
         local retrievals = {}
