@@ -127,7 +127,7 @@ Remember:
             content = "I've shared the error message from the VectorCode tool with you.\n",
           }, { visible = false })
         else
-          self.self:add_message({
+          self.chat:add_message({
             role = "user",
             content = "There was an error in the execution of the tool, but the user chose to ignore it.",
           })
