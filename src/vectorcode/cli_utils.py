@@ -5,7 +5,7 @@ import os
 from dataclasses import dataclass, field, fields
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional, Sequence, Union
 
 import shtab
 
@@ -104,7 +104,7 @@ class Config:
         return Config(**final_config)
 
 
-async def cli_arg_parser():
+def get_cli_parser():
     shared_parser = argparse.ArgumentParser(add_help=False)
     chunkinng_parser = argparse.ArgumentParser(add_help=False)
     chunkinng_parser.add_argument(
@@ -238,8 +238,12 @@ async def cli_arg_parser():
         parents=[shared_parser],
         help="Remove empty collections in the database.",
     )
+    return main_parser
 
-    main_args = main_parser.parse_args()
+
+async def parse_cli_args(args: Optional[Sequence[str]] = None):
+    main_parser = get_cli_parser()
+    main_args = main_parser.parse_args(args)
     if main_args.action is None:
         main_args = main_parser.parse_args(["--help"])
 

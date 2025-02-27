@@ -9,12 +9,12 @@ import pytest
 from vectorcode.cli_utils import (
     CliAction,
     Config,
-    cli_arg_parser,
     expand_envs_in_dict,
     expand_globs,
     expand_path,
     find_project_config_dir,
     load_config_file,
+    parse_cli_args,
 )
 
 
@@ -269,7 +269,7 @@ async def test_cli_arg_parser():
     with patch(
         "sys.argv", ["vectorcode", "query", "test_query", "-n", "5", "--absolute"]
     ):
-        config = await cli_arg_parser()
+        config = await parse_cli_args()
         assert config.action == CliAction.query
         assert config.query == ["test_query"]
         assert config.n_result == 5

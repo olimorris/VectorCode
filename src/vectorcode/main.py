@@ -8,9 +8,9 @@ from pathlib import Path
 from vectorcode import __version__
 from vectorcode.cli_utils import (
     CliAction,
-    cli_arg_parser,
     find_project_config_dir,
     load_config_file,
+    parse_cli_args,
 )
 from vectorcode.common import start_server, try_server
 from vectorcode.subcommands import (
@@ -26,7 +26,7 @@ from vectorcode.subcommands import (
 
 
 async def async_main():
-    cli_args = await cli_arg_parser()
+    cli_args = await parse_cli_args()
     if cli_args.no_stderr:
         sys.stderr = open(os.devnull, "w")
     project_dir = await find_project_config_dir(cli_args.project_root or ".")
