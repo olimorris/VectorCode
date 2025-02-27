@@ -16,9 +16,11 @@ from chromadb.utils import embedding_functions
 from vectorcode.cli_utils import Config, expand_path
 
 
-async def get_collections(client: AsyncClientAPI) -> AsyncGenerator[AsyncCollection]:
+async def get_collections(
+    client: AsyncClientAPI,
+) -> AsyncGenerator[AsyncCollection, None]:
     for collection_name in await client.list_collections():
-        collection = await client.get_collection(collection_name)
+        collection = await client.get_collection(collection_name, None)
         meta = collection.metadata
         if meta is None:
             continue
