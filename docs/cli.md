@@ -20,6 +20,7 @@
   * [Checking Project Setup](#checking-project-setup)
 * [Shell Completion](#shell-completion)
 * [Hardware Acceleration](#hardware-acceleration)
+* [LSP Mode](#lsp-mode)
 * [For Developers](#for-developers)
   * [`vectorcode query`](#vectorcode-query)
   * [`vectorcode vectorise`](#vectorcode-vectorise)
@@ -330,6 +331,20 @@ When using the default embedding function, any options inside the
 so you can always take a look at 
 [their documentation](https://www.sbert.net/docs/package_reference/sentence_transformer/SentenceTransformer.html#sentence_transformers.SentenceTransformer)
 for detailed information _regardless of your platform_.
+
+## LSP Mode
+
+There's an experimental implementation of VectorCode CLI, which accepts requests
+of [`workspace/executeCommand`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_executeCommand) 
+from `STDIO`. This allows the CLI to keep the embedding model loaded in the
+memory/VRAM, and therefore speed up the query by avoiding the IO overhead of
+loading the models.
+
+The experimental language server can be installed via the `lsp` dependency
+group:
+```bash
+pipx install vectorcode[lsp]
+```
 
 ## For Developers
 To develop a tool that makes use of VectorCode, you may find the `--pipe`/`-p`

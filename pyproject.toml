@@ -24,6 +24,7 @@ documentation = "https://github.com/Davidyz/VectorCode/blob/main/docs/cli.md"
 
 [project.scripts]
 vectorcode = "vectorcode.main:main"
+vectorcode-server = "vectorcode.lsp_main:main"
 
 [build-system]
 requires = ["pdm-backend"]
@@ -61,3 +62,4 @@ dev = [
 [project.optional-dependencies]
 legacy = ["numpy<2.0.0", "torch<=2.2.2"]
 intel = ['optimum[openvino]', 'openvino']
+lsp = ['pygls', 'lsprotocol']
