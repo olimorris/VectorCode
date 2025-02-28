@@ -46,6 +46,10 @@ async def chunked_add(
             )["ids"]
         )
 
+    if num_existing_chunks:
+        async with collection_lock:
+            await collection.delete(where={"path": full_path_str})
+
     try:
         with open(full_path_str) as fin:
             chunks = list(
@@ -65,8 +69,6 @@ async def chunked_add(
         return
 
     if num_existing_chunks:
-        async with collection_lock:
-            await collection.delete(where={"path": full_path_str})
         async with stats_lock:
             stats["update"] += 1
     else:
