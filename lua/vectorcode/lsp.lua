@@ -3,6 +3,15 @@ local M = {}
 local vc_config = require("vectorcode.config")
 local notify_opts = vc_config.notify_opts
 
+if vim.fn.executable("vectorcode-server") ~= 1 then
+  vim.notify(
+    "vectorcode-server is not found. Please make sure you installed `vectorcode[lsp]`.",
+    vim.log.levels.ERROR,
+    notify_opts
+  )
+  return
+end
+
 ---@type integer?
 local client_id, err = vim.lsp.start_client({
   name = "vectorcode-server",
