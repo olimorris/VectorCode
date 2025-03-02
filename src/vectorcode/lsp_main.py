@@ -1,9 +1,12 @@
 import asyncio
 import os
+import time
+import uuid
 from pathlib import Path
 
 from chromadb.api import AsyncClientAPI
 from chromadb.api.models.AsyncCollection import AsyncCollection
+from lsprotocol import types
 from pygls.server import LanguageServer
 
 from vectorcode import __version__
@@ -27,10 +30,9 @@ async def lsp_start() -> int:
         name="vectorcode-server", version=__version__
     )
 
-    print(f"Started {server}")
-
     @server.command("vectorcode")
     async def execute_command(ls: LanguageServer, *args):
+        start_time = time.time()
         parsed_args = await parse_cli_args(args[0])
         assert parsed_args.action == CliAction.query
         if parsed_args.project_root is None:
@@ -49,6 +51,14 @@ async def lsp_start() -> int:
             )
         final_configs = await project_configs[parsed_args.project_root].merge_from(
             parsed_args
+        )
+        progress_token = str(uuid.uuid4())
+        await ls.progress.create_async(progress_token)
+        ls.progress.begin(
+            progress_token,
+            types.WorkDoneProgressBegin(
+                "VectorCode", message="Retrieving from VectorCode."
+            ),
         )
         if not await try_server(final_configs.host, final_configs.port):
             raise ConnectionError(
@@ -69,7 +79,12 @@ async def lsp_start() -> int:
         ):
             with open(path) as fin:
                 final_results.append({"path": path, "document": fin.read()})
-
+        ls.progress.end(
+            progress_token,
+            types.WorkDoneProgressEnd(
+                message=f"Retrieved {len(final_results)} result{'s' if len(final_results) > 1 else ''} in {round(time.time() - start_time, 2)}s."
+            ),
+        )
         return final_results
 
     await asyncio.to_thread(server.start_io)
