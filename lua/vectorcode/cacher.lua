@@ -1,3 +1,4 @@
+---@type VectorCode.CacheBackend
 local M = {}
 local vc_config = require("vectorcode.config")
 local notify_opts = vc_config.notify_opts
@@ -50,6 +51,7 @@ local function async_runner(query_message, buf_nr)
     )
     vim.list_extend(args, { "--project_root", project_root })
   end
+  CACHE[buf_nr].job_count = CACHE[buf_nr].job_count + 1
   local job = require("plenary.job"):new({
     command = "vectorcode",
     args = args,
@@ -63,7 +65,7 @@ local function async_runner(query_message, buf_nr)
       if not M.buf_is_registered(buf_nr) then
         return
       end
-
+      CACHE[buf_nr].job_count = CACHE[buf_nr].job_count - 1
       CACHE[buf_nr].jobs[self.pid] = nil
       local ok, json = pcall(
         vim.json.decode,
@@ -295,7 +297,6 @@ function M.async_check(check_item, on_success, on_failure)
   end
 
   check_item = check_item or "config"
-  local return_code
   vim.system({ "vectorcode", "check", check_item }, {}, function(out)
     if out.code == 0 and type(on_success) == "function" then
       on_success(out)
@@ -303,7 +304,6 @@ function M.async_check(check_item, on_success, on_failure)
       on_failure(out)
     end
   end)
-  return return_code == 0
 end
 
 ---@param bufnr integer?
@@ -313,7 +313,7 @@ function M.buf_job_count(bufnr)
     bufnr = vim.api.nvim_get_current_buf()
   end
   if M.buf_is_registered(bufnr) then
-    return #vim.tbl_keys(CACHE[bufnr].jobs)
+    return CACHE[bufnr].job_count
   else
     return 0
   end

@@ -10,6 +10,7 @@ local config = {
     run_on_register = false,
     single_job = false,
   },
+  async_backend = "default",
   exclude_this = true,
   n_query = 1,
   notify = true,
@@ -75,6 +76,22 @@ return {
       end
     end
   ),
+
+  ---@return VectorCode.CacheBackend
+  get_cacher_backend = function()
+    if setup_config.async_backend == "lsp" then
+      return require("vectorcode.lsp")
+    elseif setup_config.async_backend == "default" then
+      return require("vectorcode.cacher")
+    else
+      vim.notify(
+        ("Unrecognised vectorcode backend: %s!"):format(setup_config.async_backend),
+        vim.log.levels.ERROR,
+        notify_opts
+      )
+      return
+    end
+  end,
 
   ---@return VectorCode.Opts
   get_user_config = function()

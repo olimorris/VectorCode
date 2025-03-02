@@ -1,7 +1,9 @@
+local vc_config = require("vectorcode.config")
+
 ---@param opts {show_job_count: boolean}?
 return function(opts)
   opts = vim.tbl_deep_extend("force", { show_job_count = false }, opts or {})
-  local cacher = require("vectorcode.cacher")
+  local cacher = vc_config.get_cacher_backend()
   return {
     function()
       local message = "VectorCode: "

@@ -40,7 +40,7 @@
 ---A unified interface used by `lsp` backend and `default` backend
 ---@class VectorCode.CacheBackend
 ---@field register_buffer fun(bufnr: integer?, opts: VectorCode.RegisterOpts) Register a buffer and create an async cache for it.
----@field deregister_buffer fun(bufnr: integer?) Deregister a buffer and destroy its async cache.
+---@field deregister_buffer fun(bufnr: integer?, opts: {notify: boolean}?) Deregister a buffer and destroy its async cache.
 ---@field query_from_cache fun(bufnr: integer?, opts: {notify: boolean}?): VectorCode.Result[] Get the cached documents.
 ---@field buf_is_registered fun(bufnr: integer?): boolean Checks if a buffer has been registered.
 ---@field buf_job_count fun(bufnr: integer?): integer Returns the number of running jobs in the background.

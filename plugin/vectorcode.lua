@@ -1,4 +1,5 @@
-local notify_opts = require("vectorcode.config").notify_opts
+local vc_config = require("vectorcode.config")
+local notify_opts = vc_config.notify_opts
 
 ---@param args string[]?
 ---@return {string: any}
@@ -19,13 +20,14 @@ local function process_args(args)
 end
 
 vim.api.nvim_create_user_command("VectorCode", function(args)
+  local cacher = vc_config.get_cacher_backend()
   local splitted_args = vim.tbl_filter(function(str)
     return str ~= nil and str ~= ""
   end, vim.split(args.args, " "))
   local action = table.remove(splitted_args, 1)
   if action == "register" then
     local bufnr = vim.api.nvim_get_current_buf()
-    require("vectorcode.cacher").register_buffer(bufnr, {
+    cacher.register_buffer(bufnr, {
       run_on_register = true,
       project_root = process_args(splitted_args).project_root,
     })
@@ -36,7 +38,7 @@ vim.api.nvim_create_user_command("VectorCode", function(args)
     )
   elseif action == "deregister" then
     local buf_nr = vim.api.nvim_get_current_buf()
-    require("vectorcode.cacher").deregister_buffer(buf_nr, { notify = true })
+    cacher.deregister_buffer(buf_nr, { notify = true })
   else
     vim.notify(
       ([[Command "VectorCode %s" was not recognised.]]):format(args.args),
@@ -47,12 +49,13 @@ vim.api.nvim_create_user_command("VectorCode", function(args)
 end, {
   nargs = 1,
   complete = function(arglead, cmd, cursorpos)
+    local cacher = vc_config.get_cacher_backend()
     local splitted_cmd = vim.tbl_filter(function(str)
       return str ~= nil and str ~= ""
     end, vim.split(cmd, " "))
 
     if #splitted_cmd < 2 then
-      if require("vectorcode.cacher").buf_is_registered(0) then
+      if cacher.buf_is_registered(0) then
         return { "register", "deregister" }
       else
         return { "register" }
