@@ -62,4 +62,4 @@ dev = [
 [project.optional-dependencies]
 legacy = ["numpy<2.0.0", "torch<=2.2.2"]
 intel = ['optimum[openvino]', 'openvino']
-lsp = ['pygls', 'lsprotocol']
+lsp = ['pygls<2.0.0', 'lsprotocol']
