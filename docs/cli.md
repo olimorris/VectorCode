@@ -395,6 +395,10 @@ The experimental language server can be installed via the `lsp` dependency
 group:
 ```bash
 pipx install vectorcode[lsp]
+
+# or if you have an existing `vectorcode` install:
+
+pipx inject vectorcode vectorcode[lsp] --force
 ```
 
 The LSP request for the `workspace/executeCommand` is defined as follows: 
