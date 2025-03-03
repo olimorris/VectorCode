@@ -87,7 +87,7 @@ Here's how VectorCode may be used with
     -- This uses the async cache to accelerate the prompt construction.
     -- There's also the require('vectorcode').query API, which provides 
     -- more up-to-date information, but at the cost of blocking the main UI.
-    local vectorcode_cacher = require("vectorcode.cacher")
+    local vectorcode_cacher = require("vectorcode.config").get_cacher_backend()
     require("minuet").setup({
       add_single_line_entry = true,
       n_completions = 1,
