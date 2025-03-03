@@ -9,7 +9,7 @@ if vim.fn.executable("vectorcode-server") ~= 1 then
     vim.log.levels.ERROR,
     notify_opts
   )
-  return
+  return nil
 end
 
 ---@type integer?
@@ -99,9 +99,18 @@ local function async_runner(query_message, buf_nr)
     client.request(
       vim.lsp.protocol.Methods.workspace_executeCommand,
       { command = "vectorcode", arguments = args },
-      function(_, result, _, _)
+      function(err, result, _, _)
         CACHE[buf_nr].job_count = CACHE[buf_nr].job_count - 1
-        if #result > 0 then
+        if err ~= nil then
+          vim.notify(
+            ("VectorCode LSP cacher failed with the following error:\n%s"):format(
+              err.message
+            ),
+            vim.log.levels.ERROR,
+            notify_opts
+          )
+        end
+        if result ~= nil and #result > 0 then
           CACHE[buf_nr].retrieval = result
         end
       end,

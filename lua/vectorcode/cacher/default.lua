@@ -146,6 +146,7 @@ M.register_buffer = vc_config.check_cli_wrap(
         retrieval = nil,
         options = opts,
         jobs = {},
+        job_count = 0,
       }
     end
     if opts.run_on_register then

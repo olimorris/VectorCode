@@ -80,17 +80,26 @@ return {
   ---@return VectorCode.CacheBackend
   get_cacher_backend = function()
     if setup_config.async_backend == "lsp" then
-      return require("vectorcode.lsp")
-    elseif setup_config.async_backend == "default" then
-      return require("vectorcode.cacher")
-    else
+      local ok, cacher = pcall(require, "vectorcode.cacher.lsp")
+      if ok and type(cacher) == "table" then
+        return cacher
+      else
+        vim.notify("Falling back to default backend.", vim.log.levels.WARN, notify_opts)
+        setup_config.async_backend = "default"
+      end
+    end
+
+    if setup_config.async_backend ~= "default" then
       vim.notify(
-        ("Unrecognised vectorcode backend: %s!"):format(setup_config.async_backend),
+        ("Unrecognised vectorcode backend: %s! Falling back to `default`."):format(
+          setup_config.async_backend
+        ),
         vim.log.levels.ERROR,
         notify_opts
       )
-      return
+      setup_config.async_backend = "default"
     end
+    return require("vectorcode.cacher.default")
   end,
 
   ---@return VectorCode.Opts

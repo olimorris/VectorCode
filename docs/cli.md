@@ -346,6 +346,32 @@ group:
 pipx install vectorcode[lsp]
 ```
 
+The LSP request for the `workspace/executeCommand` is defined as follows: 
+```
+{
+    command: str
+    arguments: list[Any]
+}
+```
+For the `vectorcode-server`, the only valid value for the `command` key is 
+`"vectorcode"`, and `arguments` is any other remaining components of a valid CLI
+command. For example, to execute `vectorcode query -n 10 reranker`, the request
+would be: 
+```
+{
+    command: "vectorcode",
+    arguments: ["query", "-n", "10", "reranker"]
+}
+```
+Note that:
+
+1. For easier parsing, `--pipe` is assumed to be enabled in LSP mode;
+2. At the time this only work with vectorcode setup that uses a standalone
+   ChromaDB server, which is not difficult to setup using docker;
+3. At the time this only work with `query` subcommand. I will consider adding
+   support for other subcommand but first I need to figure out how to properly
+   manage `project_root` across different requests if they change.
+
 ## For Developers
 To develop a tool that makes use of VectorCode, you may find the `--pipe`/`-p`
 flag helpful. It formats the output into JSON and suppress other outputs so that 

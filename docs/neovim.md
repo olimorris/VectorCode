@@ -24,13 +24,13 @@
     * [`check(check_item?)`](#checkcheck_item)
     * [`update(project_root?)`](#updateproject_root)
   * [Cached Asynchronous API](#cached-asynchronous-api)
-    * [`register_buffer(bufnr?, opts?)`](#register_bufferbufnr-opts)
-    * [`query_from_cache(bufnr?)`](#query_from_cachebufnr)
-    * [`async_check(check_item?, on_success?, on_failure?)`](#async_checkcheck_item-on_success-on_failure)
-    * [`buf_is_registered(bufnr?)`](#buf_is_registeredbufnr)
-    * [`buf_is_enabled(bufnr?)`](#buf_is_enabledbufnr)
-    * [`buf_job_count(bufnr?)`](#buf_job_countbufnr)
-    * [`make_prompt_component(bufnr?, component_cb?)`](#make_prompt_componentbufnr-component_cb)
+    * [`cacher_backend.register_buffer(bufnr?, opts?)`](#cacher_backendregister_bufferbufnr-opts)
+    * [`cacher_backend.query_from_cache(bufnr?)`](#cacher_backendquery_from_cachebufnr)
+    * [`cacher_backend.async_check(check_item?, on_success?, on_failure?)`](#cacher_backendasync_checkcheck_item-on_success-on_failure)
+    * [`cacher_backend.buf_is_registered(bufnr?)`](#cacher_backendbuf_is_registeredbufnr)
+    * [`cacher_backend.buf_is_enabled(bufnr?)`](#cacher_backendbuf_is_enabledbufnr)
+    * [`cacher_backend.buf_job_count(bufnr?)`](#cacher_backendbuf_job_countbufnr)
+    * [`cacher_backend.make_prompt_component(bufnr?, component_cb?)`](#cacher_backendmake_prompt_componentbufnr-component_cb)
 * [Integrations](#integrations)
 
 <!-- mtoc-end -->
@@ -195,6 +195,7 @@ require("vectorcode").setup({
     query_cb = require("vectorcode.utils").make_surrounding_lines_cb(-1),
     run_on_register = false,
   },
+  async_backend = "default", -- or "lsp"
   exclude_this = true,
   n_query = 1,
   notify = true,
@@ -219,6 +220,8 @@ The following are the available options for the parameter of this function:
   LLM as the prompt, and can lead to generations with outdated information;
 - `async_opts`: default options used when registering buffers. See 
   [`register_buffer(bufnr?, opts?)`](#register_bufferbufnr-opts) for details;
+- `async_backend`: the async backend to use, currently either `"default"` or
+  `"lsp"`. Default: `"default"`;
 - `on_setup`: some actions that can be registered to run when `setup` is called.
   Currently only supports `update`, which calls `vectorcode update` CLI command
   if [`vectorcode check config`](#checking-project-setup) prints a valid path.
@@ -304,7 +307,7 @@ require("vectorcode").check()
 The following are the available options for this function:
 - `check_item`: Only supports `"config"` at the moment. Checks if a project-local 
   config is present.
-  Return value: `true` if passed, `false` if failed.
+Return value: `true` if passed, `false` if failed.
 
 This involves the `check` command of the CLI that checks the status of the
 VectorCode project setup. Use this as a pre-condition of any subsequent
@@ -331,11 +334,37 @@ The async cache mechanism helps mitigate the issue where the `query` API may
 take too long and block the main thread. The following are the functions
 available through the `require("vectorcode.cacher")` module.
 
-#### `register_buffer(bufnr?, opts?)`
+From 0.4.0, the async cache module came with 2 backends that exposes the same
+interface:
+
+1. The `default` backend which works exactly like the original implementation
+   used in previous versions;
+2. The `lsp` based backend, which make use of the experimental `vectorcode-server`
+   implemented in version 0.4.0.
+
+
+| Features | `default`                                                                                                 | `lsp`                                                                                                                                                                  |
+|:---:|:---:|:---:|
+| **Pros** | Fully backward compatible with minimal extra config required                                              | Less IO overhead for loading/unloading embedding models; Progress reports.                                                                                             |
+| **Cons** | Heavy IO overhead because the embedding model anc database client need to be initialised for every query. | Requires `vectorcode-server`; Only works if you're using a standalone ChromaDB server; Lacks the ability to cancel pending queries; May contain bugs because it's new. |
+
+You may choose which backend to use by setting the [`setup`](#setupopts) option `async_backend`, 
+and acquire the corresponding backend by the following API:
+```lua
+local cacher_backend = require("vectorcode.config").get_cacher_backend()
+```
+and you can use `cacher_backend` wherever you used to use
+`require("vectorcode.cacher")`. For example, `require("vectorcode.cacher").query_from_cache(0)` 
+becomes `require("vectorcode.config").get_cacher_backend().query_from_cache(0)`.
+In the remaining section of this documentation, I'll use `cacher_backend` to
+represent either of the backends. Unless otherwise noticed, all the asynchronous APIs 
+work for both backends.
+
+#### `cacher_backend.register_buffer(bufnr?, opts?)`
 This function registers a buffer to be cached by VectorCode.
 
 ```lua
-require("vectorcode.cacher").register_buffer(0, {
+cacher_backend.register_buffer(0, {
     n_query = 1,
 })
 ```
@@ -345,7 +374,9 @@ The following are the available options for this function:
 - `opts`: accepts a lua table with the following keys:
   - `project_root`: a string of the path that overrides the detected project root. 
   Default: `nil`. This is mostly intended to use with the [user command](#vectorcode-register), 
-  and you probably should not use this directly in your config;
+  and you probably should not use this directly in your config. **If you're
+  using the LSP backend, this will be automatically detected based on
+  `.vectorcode` or `.git`. If this fails, LSP backend will not make the request**;
   - `exclude_this`: whether to exclude the file you're editing. Default: `true`;
   - `n_query`: number of retrieved documents. Default: `1`;
   - `debounce`: debounce time in milliseconds. Default: `10`;
@@ -356,23 +387,30 @@ The following are the available options for this function:
     Default: `false`;
   - `single_job`: boolean. If this is set to `true`, there will only be one running job
     for each buffer, and when a new job is triggered, the last-running job will be
-    cancelled. Default: `false`.
+    cancelled. Default: `false`. **This does not work for the LSP backend.**
 
 
-#### `query_from_cache(bufnr?)`
+#### `cacher_backend.query_from_cache(bufnr?)`
 This function queries VectorCode from cache.
 
+```lua
+local query_results = cacher_backend.query_from_cache(0, {notify=false})
+```
+
 The following are the available options for this function:
-- `bufnr`: buffer number. Default: current buffer.
+- `bufnr`: buffer number. Default: current buffer;
+- `opts`: accepts a lua table with the following keys:
+  - `notify`: boolean, whether to show notifications when a query is completed. Default:
+    `false`;
 
 Return value: an array of results. Each item of the array is in the format of 
 `{path="path/to/your/code.lua", document="document content"}`.
 
-#### `async_check(check_item?, on_success?, on_failure?)`
+#### `cacher_backend.async_check(check_item?, on_success?, on_failure?)`
 This function checks if VectorCode has been configured properly for your project.
 
 ```lua 
-require("vectorcode.cacher").async_check(
+cacher_backend.async_check(
     "config", 
     do_something(), -- on success
     do_something_else()  -- on failure
@@ -385,14 +423,14 @@ The following are the available options for this function:
 - `on_success`: a callback function that is called when the check passes;
 - `on_failure`: a callback function that is called when the check fails.
 
-#### `buf_is_registered(bufnr?)`
+#### `cacher_backend.buf_is_registered(bufnr?)`
 This function checks if a buffer has been registered with VectorCode.
 
 The following are the available options for this function:
 - `bufnr`: buffer number. Default: current buffer.
 Return value: `true` if registered, `false` otherwise.
 
-#### `buf_is_enabled(bufnr?)`
+#### `cacher_backend.buf_is_enabled(bufnr?)`
 This function checks if a buffer has been enabled with VectorCode. It is slightly
 different from `buf_is_registered`, because it does not guarantee VectorCode is actively
 caching the content of the buffer. It is the same as `buf_is_registered && not is_paused`.
@@ -401,10 +439,10 @@ The following are the available options for this function:
 - `bufnr`: buffer number. Default: current buffer.
 Return value: `true` if enabled, `false` otherwise.
 
-#### `buf_job_count(bufnr?)`
+#### `cacher_backend.buf_job_count(bufnr?)`
 Returns the number of running jobs in the background.
 
-#### `make_prompt_component(bufnr?, component_cb?)`
+#### `cacher_backend.make_prompt_component(bufnr?, component_cb?)`
 Compile the retrieval results into a string.
 Parameters:
 - `bufnr`: buffer number. Default: current buffer;

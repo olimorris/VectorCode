@@ -178,8 +178,9 @@ return {
         ---@param chat CodeCompanion.Chat
         callback = function(chat)
           local codebase_prompt = ""
-          local ok, vc_cache = pcall(require, "vectorcode.cacher")
+          local ok, vc_config = pcall(require, "vectorcode.config")
           if ok then
+            local vc_cache = vc_config.get_cacher_backend()
             local bufnr = chat.context.bufnr
             if not vc_cache.buf_is_registered(bufnr) then
               return
