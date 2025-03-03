@@ -131,15 +131,15 @@ M.register_buffer = vc_config.check_cli_wrap(
       bufnr = vim.api.nvim_get_current_buf()
     end
     if M.buf_is_registered(bufnr) then
-      opts = vim.tbl_deep_extend("force", opts or {}, CACHE[bufnr].options)
+      opts = vim.tbl_deep_extend("force", CACHE[bufnr].options, opts or {})
     end
     opts =
       vim.tbl_deep_extend("force", vc_config.get_user_config().async_opts, opts or {})
 
     if M.buf_is_registered(bufnr) then
       -- update the options and/or query_cb
-      local cache = CACHE[bufnr]
-      cache.options = vim.tbl_deep_extend("force", cache.options, opts or {})
+      CACHE[bufnr].options =
+        vim.tbl_deep_extend("force", CACHE[bufnr].options, opts or {})
     else
       CACHE[bufnr] = {
         enabled = true,
