@@ -20,11 +20,11 @@
   * [Checking Project Setup](#checking-project-setup)
 * [Shell Completion](#shell-completion)
 * [Hardware Acceleration](#hardware-acceleration)
-* [LSP Mode](#lsp-mode)
 * [For Developers](#for-developers)
   * [`vectorcode query`](#vectorcode-query)
   * [`vectorcode vectorise`](#vectorcode-vectorise)
   * [`vectorcode ls`](#vectorcode-ls)
+* [LSP Mode](#lsp-mode)
 
 <!-- mtoc-end -->
 
@@ -332,46 +332,6 @@ so you can always take a look at
 [their documentation](https://www.sbert.net/docs/package_reference/sentence_transformer/SentenceTransformer.html#sentence_transformers.SentenceTransformer)
 for detailed information _regardless of your platform_.
 
-## LSP Mode
-
-There's an experimental implementation of VectorCode CLI, which accepts requests
-of [`workspace/executeCommand`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_executeCommand) 
-from `STDIO`. This allows the CLI to keep the embedding model loaded in the
-memory/VRAM, and therefore speed up the query by avoiding the IO overhead of
-loading the models.
-
-The experimental language server can be installed via the `lsp` dependency
-group:
-```bash
-pipx install vectorcode[lsp]
-```
-
-The LSP request for the `workspace/executeCommand` is defined as follows: 
-```
-{
-    command: str
-    arguments: list[Any]
-}
-```
-For the `vectorcode-server`, the only valid value for the `command` key is 
-`"vectorcode"`, and `arguments` is any other remaining components of a valid CLI
-command. For example, to execute `vectorcode query -n 10 reranker`, the request
-would be: 
-```
-{
-    command: "vectorcode",
-    arguments: ["query", "-n", "10", "reranker"]
-}
-```
-Note that:
-
-1. For easier parsing, `--pipe` is assumed to be enabled in LSP mode;
-2. At the time this only work with vectorcode setup that uses a standalone
-   ChromaDB server, which is not difficult to setup using docker;
-3. At the time this only work with `query` subcommand. I will consider adding
-   support for other subcommand but first I need to figure out how to properly
-   manage `project_root` across different requests if they change.
-
 ## For Developers
 To develop a tool that makes use of VectorCode, you may find the `--pipe`/`-p`
 flag helpful. It formats the output into JSON and suppress other outputs so that 
@@ -422,3 +382,45 @@ A JSON array of collection information of the following format will be printed:
 - `"collection_name"`: the unique identifier for the project used in the database;
 - `"size"`: number of chunks stored in the database;
 - `"num_files"`: number of files that have been vectorised in the project.
+
+## LSP Mode
+
+There's an experimental implementation of VectorCode CLI, which accepts requests
+of [`workspace/executeCommand`](https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspace_executeCommand) 
+from `STDIO`. This allows the CLI to keep the embedding model loaded in the
+memory/VRAM, and therefore speed up the query by avoiding the IO overhead of
+loading the models.
+
+The experimental language server can be installed via the `lsp` dependency
+group:
+```bash
+pipx install vectorcode[lsp]
+```
+
+The LSP request for the `workspace/executeCommand` is defined as follows: 
+```
+{
+    command: str
+    arguments: list[Any]
+}
+```
+For the `vectorcode-server`, the only valid value for the `command` key is 
+`"vectorcode"`, and `arguments` is any other remaining components of a valid CLI
+command. For example, to execute `vectorcode query -n 10 reranker`, the request
+would be: 
+```
+{
+    command: "vectorcode",
+    arguments: ["query", "-n", "10", "reranker"]
+}
+```
+Note that:
+
+1. For easier parsing, `--pipe` is assumed to be enabled in LSP mode;
+2. At the time this only work with vectorcode setup that uses a standalone
+   ChromaDB server, which is not difficult to setup using docker;
+3. The `arguments` must contain `--project_root` and the corresponding project
+   root to avoid confusion;
+4. At the time this only work with `query` subcommand. I will consider adding
+   support for other subcommand but first I need to figure out how to properly
+   manage `project_root` across different requests if they change.
