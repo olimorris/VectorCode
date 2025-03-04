@@ -75,6 +75,7 @@ local make_tool = check_cli_wrap(function(opts)
   - Avoid retrieving one single file because the retrieval mechanism may not be very accurate
   - When providing answers based on VectorCode results, try to give references such as paths to files and line ranges, unless you're told otherwise
   - Include one single command call for VectorCode each time. You may include multiple keywords in the command
+  - VectorCode is the name of this tool. Do not include it in the query unless the user explicitly asks
   %s
   %s
 
