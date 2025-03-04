@@ -3,6 +3,7 @@
 local check_cli_wrap = require("vectorcode.config").check_cli_wrap
 
 ---@param opts tool_opts?
+---@return CodeCompanion.Agent.Tool
 local make_tool = check_cli_wrap(function(opts)
   opts = vim.tbl_deep_extend(
     "force",
@@ -18,7 +19,7 @@ local make_tool = check_cli_wrap(function(opts)
     name = "vectorcode",
     cmds = { { "vectorcode", "query", "--pipe" } },
     handlers = {
-      ---@param self CodeCompanion.Tools
+      ---@param self CodeCompanion.Agent
       setup = function(self)
         local tool = self.tool
         local n_query = tool.request.action.count or opts.default_num
@@ -28,6 +29,9 @@ local make_tool = check_cli_wrap(function(opts)
         end
         vim.list_extend(tool.cmds[1], { "-n", tostring(n_query) })
         vim.list_extend(tool.cmds[1], keywords)
+        if not opts.include_stderr then
+          vim.list_extend(tool.cmds[1], { "--no_stderr" })
+        end
       end,
     },
     schema = {
@@ -101,7 +105,7 @@ Remember:
     output = {
       error = function(self, cmd, stderr)
         if type(stderr) == "table" then
-          stderr = table.concat(stderr, "\n")
+          stderr = table.concat(vim.iter(stderr):flatten(math.huge):totable(), "\n")
         end
 
         if opts.include_stderr then
@@ -136,8 +140,10 @@ Remember:
       success = function(self, cmd, stdout)
         local retrievals = {}
         if type(stdout) == "table" then
-          retrievals =
-            vim.json.decode(table.concat(stdout, "\n"), { array = true, object = true })
+          retrievals = vim.json.decode(
+            vim.iter(stdout):flatten(math.huge):totable()[1],
+            { array = true, object = true }
+          )
         end
 
         for i, file in ipairs(retrievals) do
