@@ -80,8 +80,9 @@ async def lsp_start() -> int:
             collection=cached_collections[str(final_configs.project_root)],
             configs=final_configs,
         ):
-            with open(path) as fin:
-                final_results.append({"path": path, "document": fin.read()})
+            if os.path.isfile(path):
+                with open(path) as fin:
+                    final_results.append({"path": path, "document": fin.read()})
         ls.progress.end(
             progress_token,
             types.WorkDoneProgressEnd(
