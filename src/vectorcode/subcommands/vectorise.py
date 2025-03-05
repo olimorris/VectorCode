@@ -55,6 +55,9 @@ async def chunked_add(
             chunks = list(
                 FileChunker(configs.chunk_size, configs.overlap_ratio).chunk(fin)
             )
+            if len(chunks) == 0 or (len(chunks) == 1 and chunks[0] == ""):
+                # empty file
+                return
             chunks.append(str(os.path.relpath(full_path_str, configs.project_root)))
             async with collection_lock:
                 for idx in range(0, len(chunks), max_batch_size):
