@@ -263,6 +263,14 @@ it. The parameters follow the same syntax as in `vectorise` command.
 The CLI defaults to return the relative path of the documents from the project
 root. To use absolute path, add the `--absolute` flag.
 
+If you wish to limit the output to "path only" or "document (content) only", you
+can achieve this by using the `--include` flag:
+```
+vectorcode query foo bar --include path
+```
+This will only include the `path` in the output. This is effective for both
+normal CLI usage and [`--pipe` mode](#for-developers).
+
 ### Listing All Collections
 
 You can use `vectorcode ls` command to list all collections in your Chromadb.

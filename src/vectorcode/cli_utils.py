@@ -3,7 +3,7 @@ import glob
 import json
 import os
 from dataclasses import dataclass, field, fields
-from enum import Enum
+from enum import Enum, StrEnum
 from pathlib import Path
 from typing import Any, Optional, Sequence, Union
 
@@ -18,6 +18,19 @@ GLOBAL_CONFIG_PATH = os.path.join(
 )
 
 CHECK_OPTIONS = ["config"]
+
+
+class QueryInclude(StrEnum):
+    path = "path"
+    document = "document"
+
+    def to_header(self) -> str:
+        """
+        Make the string into a nice-looking format for printing in the terminal.
+        """
+        if self.value == "document":
+            return f"{self.value.capitalize()}:\n"
+        return f"{self.value.capitalize()}: "
 
 
 class CliAction(Enum):
@@ -58,6 +71,9 @@ class Config:
     reranker_params: dict[str, Any] = field(default_factory=dict)
     check_item: Optional[str] = None
     use_absolute_path: bool = False
+    include: list[QueryInclude] = field(
+        default_factory=lambda: [QueryInclude.path, QueryInclude.document]
+    )
 
     @classmethod
     async def import_from(cls, config_dict: dict[str, Any]) -> "Config":
@@ -197,6 +213,13 @@ def get_cli_parser():
         action="store_true",
         help="Use absolute path when returning the retrieval results.",
     )
+    query_parser.add_argument(
+        "--include",
+        choices=list(i.value for i in QueryInclude),
+        nargs="+",
+        help="What to include in the final output.",
+        default=["path", "document"],
+    )
 
     subparsers.add_parser("drop", parents=[shared_parser], help="Remove a collection.")
 
@@ -256,6 +279,7 @@ async def parse_cli_args(args: Optional[Sequence[str]] = None):
     overlap_ratio = 0.2
     query_multiplier = -1
     query_exclude = []
+    query_include = ["path", "document"]
     check_item = None
     absolute = False
     match main_args.action:
@@ -271,6 +295,7 @@ async def parse_cli_args(args: Optional[Sequence[str]] = None):
             query_multiplier = main_args.multiplier
             query_exclude = main_args.exclude
             absolute = main_args.absolute
+            query_include = main_args.include
         case "check":
             check_item = main_args.check_item
         case "init":
@@ -291,6 +316,7 @@ async def parse_cli_args(args: Optional[Sequence[str]] = None):
         query_exclude=query_exclude,
         check_item=check_item,
         use_absolute_path=absolute,
+        include=[QueryInclude(i) for i in query_include],
     )
 
 

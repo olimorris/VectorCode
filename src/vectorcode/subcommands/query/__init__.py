@@ -107,7 +107,11 @@ async def query(configs: Config) -> int:
                 output_path = os.path.abspath(path)
             else:
                 output_path = os.path.relpath(path, configs.project_root)
-            structured_result.append({"path": output_path, "document": document})
+
+            full_result = {"path": output_path, "document": document}
+            structured_result.append(
+                {str(key): full_result[str(key)] for key in configs.include}
+            )
         else:
             print(
                 f"{path} is no longer a valid file! Please re-run vectorcode vectorise to refresh the database.",
@@ -118,8 +122,8 @@ async def query(configs: Config) -> int:
         print(json.dumps(structured_result))
     else:
         for idx, result in enumerate(structured_result):
-            print(f"Path: {result['path']}")
-            print(f"Content: \n{result['document']}")
+            for include_item in configs.include:
+                print(f"{include_item.to_header()}{result.get(include_item.value)}")
             if idx != len(structured_result) - 1:
                 print()
     return 0
