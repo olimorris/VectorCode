@@ -10,7 +10,6 @@ local make_tool = check_cli_wrap(function(opts)
     { max_num = -1, default_num = 10, include_stderr = false },
     opts or {}
   )
-  local xml2lua = require("codecompanion.utils.xml.xml2lua")
   local capping_message = ""
   if opts.max_num > 0 then
     capping_message = ("  - Request for at most %d documents"):format(opts.max_num)
@@ -54,7 +53,7 @@ local make_tool = check_cli_wrap(function(opts)
         },
       },
     },
-    system_prompt = function(schema)
+    system_prompt = function(schema, xml2lua)
       return string.format(
         [[### VectorCode, a repository indexing and query tool.
 
@@ -105,7 +104,11 @@ Remember:
       )
     end,
     output = {
-      error = function(self, cmd, stderr)
+      ---@param agent CodeCompanion.Agent
+      ---@param cmd table
+      ---@param stderr table
+      ---@param stdout? table
+      error = function(agent, cmd, stderr, stdout)
         if type(stderr) == "table" then
           stderr = table.concat(vim.iter(stderr):flatten(math.huge):totable(), "\n")
         end
@@ -116,7 +119,7 @@ Remember:
             vim.log.levels.ERROR,
             require("vectorcode.config").notify_opts
           )
-          self.chat:add_message({
+          agent.chat:add_message({
             role = "user",
             content = string.format(
               [[After the VectorCode tool completed, there was an error:
@@ -128,18 +131,21 @@ Remember:
             ),
           }, { visible = false })
 
-          self.chat:add_message({
+          agent.chat:add_buf_message({
             role = "user",
             content = "I've shared the error message from the VectorCode tool with you.\n",
-          }, { visible = false })
+          })
         else
-          self.chat:add_message({
+          agent.chat:add_buf_message({
             role = "user",
             content = "There was an error in the execution of the tool, but the user chose to ignore it.",
           })
         end
       end,
-      success = function(self, cmd, stdout)
+      ---@param agent CodeCompanion.Agent
+      ---@param cmd table The command that was executed
+      ---@param stdout table
+      success = function(agent, cmd, stdout)
         local retrievals = {}
         if type(stdout) == "table" then
           retrievals = vim.json.decode(
@@ -150,7 +156,7 @@ Remember:
 
         for i, file in ipairs(retrievals) do
           if opts.max_num < 0 or i <= opts.max_num then
-            self.chat:add_message({
+            agent.chat:add_message({
               role = "user",
               content = string.format(
                 [[Here is a file the VectorCode tool retrieved:
@@ -168,10 +174,10 @@ Remember:
           end
         end
 
-        self.chat:add_message({
+        agent.chat:add_buf_message({
           role = "user",
           content = "I've shared the content from the VectorCode tool with you.\n",
-        }, { visible = false })
+        })
       end,
     },
   }
