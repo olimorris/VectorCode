@@ -119,7 +119,7 @@ Remember:
             vim.log.levels.ERROR,
             require("vectorcode.config").notify_opts
           )
-          self.agent:add_message({
+          agent.chat:add_message({
             role = "user",
             content = string.format(
               [[After the VectorCode tool completed, there was an error:
@@ -131,12 +131,12 @@ Remember:
             ),
           }, { visible = false })
 
-          self.agent:add_message({
+          agent.chat:add_message({
             role = "user",
             content = "I've shared the error message from the VectorCode tool with you.\n",
           }, { visible = true })
         else
-          self.agent:add_message({
+          agent.chat:add_message({
             role = "user",
             content = "There was an error in the execution of the tool, but the user chose to ignore it.",
           })
@@ -156,7 +156,7 @@ Remember:
 
         for i, file in ipairs(retrievals) do
           if opts.max_num < 0 or i <= opts.max_num then
-            self.agent:add_message({
+            agent.chat:add_message({
               role = "user",
               content = string.format(
                 [[Here is a file the VectorCode tool retrieved:
@@ -174,7 +174,7 @@ Remember:
           end
         end
 
-        self.agent:add_message({
+        agent.chat:add_message({
           role = "user",
           content = "I've shared the content from the VectorCode tool with you.\n",
         }, { visible = true })
