@@ -1,6 +1,9 @@
+---@module "codecompanion"
+
 ---@alias tool_opts {max_num: integer?, default_num: integer?, include_stderr: boolean?}
 
 local check_cli_wrap = require("vectorcode.config").check_cli_wrap
+local notify_opts = require("vectorcode.config").notify_opts
 
 ---@param opts tool_opts?
 ---@return CodeCompanion.Agent.Tool
@@ -18,9 +21,9 @@ local make_tool = check_cli_wrap(function(opts)
     name = "vectorcode",
     cmds = { { "vectorcode", "query", "--pipe" } },
     handlers = {
-      ---@param self CodeCompanion.Agent
-      setup = function(self)
-        local tool = self.tool
+      ---@param agent CodeCompanion.Agent
+      setup = function(agent)
+        local tool = agent.tool
         local n_query = tool.request.action.count or opts.default_num
         local keywords = tool.request.action.query
         if type(keywords) == "string" then
@@ -131,16 +134,22 @@ Remember:
             ),
           }, { visible = false })
 
-          agent.chat:add_buf_message({
+          agent.chat:add_message({
             role = "user",
             content = "I've shared the error message from the VectorCode tool with you.\n",
-          })
+          }, { visible = false })
         else
-          agent.chat:add_buf_message({
+          agent.chat:add_message({
             role = "user",
             content = "There was an error in the execution of the tool, but the user chose to ignore it.",
-          })
+          }, { visible = false })
         end
+
+        vim.notify(
+          ("VectorCode query completed with the following error:\n%s"):format(stderr),
+          vim.log.levels.WARN,
+          notify_opts
+        )
       end,
       ---@param agent CodeCompanion.Agent
       ---@param cmd table The command that was executed
@@ -174,10 +183,11 @@ Remember:
           end
         end
 
-        agent.chat:add_buf_message({
+        agent.chat:add_message({
           role = "user",
           content = "I've shared the content from the VectorCode tool with you.\n",
-        })
+        }, { visible = false })
+        vim.notify("VectorCode query completed.", vim.log.levels.INFO, notify_opts)
       end,
     },
   }
